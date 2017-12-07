@@ -1,0 +1,179 @@
+{\rtf1\ansi\ansicpg932\cocoartf949\cocoasubrtf270
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red191\green0\blue0;\red0\green0\blue0;\red0\green0\blue191;
+\red96\green96\blue96;\red0\green115\blue0;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs36 \cf2 // ================================================\cf3 \
+\cf2 // SuperCollider Workspace for Feedback Chaos Space\cf3 \
+\cf2 // (c) akihiro kubota, 2008\cf3 \
+\cf2 // ================================================\cf3 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 ///////////////////////////////////////////////////////////\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf2 //\cf3 \
+\cf2 // setup\cf3 \
+\cf2 //\cf3 \
+\pard\pardeftab560\li1140\fi-1140\ql\qnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // current window\cf3 \
+(\
+\cf4 Document\cf3 .current.font_(\cf4 Font\cf3 (\cf5 "Monaco"\cf3 , 18), -1);\
+\cf4 Document\cf3 .current.background_(\cf4 Color\cf3 .new255(250, 250, 250, 230));\
+\cf4 Document\cf3 .current.stringColor_(\cf4 Color\cf3 .new255(0, 0, 0, 255));\
+\cf4 Document\cf3 .current.bounds_(\cf4 Rect\cf3 (540, 0, 900, 900));\
+\cf4 Document\cf3 .current.syntaxColorize;\
+\
+\cf2 // listener window\cf3 \
+\cf4 Document\cf3 .listener.title_(\cf5 "post"\cf3 );\
+\cf2 //Document.listener.font_(Font("Monaco", 18), -1);\cf3 \
+\cf4 Document\cf3 .listener.bounds_(\cf4 Rect\cf3 (0, 398, 640, 480));\
+\cf4 Document\cf3 .listener.background_(\cf4 Color\cf3 .new255(255, 255, 255, 255));\
+\cf4 Document\cf3 .listener.stringColor_(\cf4 Color\cf3 .new255(0, 0, 0, 255));\
+\cf4 Document\cf3 .listener.syntaxColorize;\
+\
+\cf2 // logging coding activities\cf3 \
+codeDump = \{ \cf4 arg\cf3  x; x.postln; \cf4 Document\cf3 .listener.syntaxColorize; \};\
+\
+\cf2 // history\cf3 \
+\cf4 History\cf3 .clear; \
+\cf4 History\cf3 .start;\
+\
+\cf2 // boot internal server\cf3 \
+\cf4 Server\cf3 .default = s = \cf4 Server\cf3 .internal;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 s.options.blockSize = 8;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 s.options.numWireBufs = 128;\
+s.options.memSize = 16384;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 s.recSampleFormat = \cf5 "int16"\cf3 ;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 s = \cf4 Server\cf3 .default;\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural
+\cf3 if(not(s.serverRunning), \{s.boot\});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\cf2 // create a proxyspace\cf3 \
+p = \cf4 ProxySpace\cf3 .push(s);\
+p.fadeTime = 3.0;\
+p.clock = \cf4 TempoClock\cf3 .default;\
+\
+\cf2 // TdefEditor\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf2 //t = TdefAllGui(16);\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+(\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf2 // monitor the input/outputs:\cf3 \
+o = \cf4 AudioMeter\cf3 .output([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], s);\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\cf2 // spectrum (freqency analyzer)\cf3 \
+w = \cf4 SCWindow\cf3 .new(\cf5 "spectrum"\cf3 , \cf4 Rect\cf3 (0, 350, 512, 300), border: \cf4 false\cf3 );\
+w.alpha_(0.8);\
+f = \cf4 SCFreqScope\cf3 (w, \cf4 Rect\cf3 (0, 0, 513, 301));\
+f.dbRange_(96);\
+f.freqMode_(1);\
+f.inBus_(4);\
+f.active_(\cf4 true\cf3 );\
+w.onClose_(\{ f.kill \});\
+w.front;\
+\
+\cf2 // waveform (stethoscope)\cf3 \
+v = \cf4 SCWindow\cf3 .new(\cf5 "waveform"\cf3 , \cf4 Rect\cf3 (0, 51, 512, 300), border: \cf4 false\cf3 );\
+v.alpha_(0.8);\
+v.view.decorator = \cf4 FlowLayout\cf3 (v.view.bounds);\
+e = \cf4 Stethoscope\cf3 .new(s, 4, zoom:0.2, view:v.view);\
+v.onClose = \{ e.free \};\
+v.front;\
+)\
+\
+\cf2 // the end\cf3 \
+p.end(30);\
+p.clear.pop;\
+p.free;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 ///////////////////////////////////////////////////////////\cf3 \
+\cf2 //\cf3 \
+\cf2 // feedback chaos\cf3 \
+\cf2 //\cf3 \
+\
+\cf2 // proxies\cf3 \
+(\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 ~out.ar(4);\
+~out.play;\
+~out.vol = 1.0;\
+)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\cf2 // rjk-chaos\cf3 \
+(\
+~rjk = \cf4 SynthDef\cf3 (\cf5 "rjkchaos"\cf3 , \{\
+	\cf4 arg\cf3  \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 		in = 1.0, cutoff = 2000, phase1 = 2, phase2 = 2, phase3 = 2,\
+		p1Vol = 0, p2Vol = 0, p3Vol = 1, formant = 500, fbk = 0.9, rfbk = 0,\
+		q = 1, rfq = 1, gain = 0.2;\
+	\cf4 var\cf3 \
+		input, delayedSignal, p1, p2, p3, mixedSignal, inny;\
+	input = \cf4 Mix\cf3 .new(\cf4 AudioIn\cf3 .ar([1, 2])) * in;\
+	delayedSignal = \cf4 InFeedback\cf3 .ar(4, 1);\
+	p1 = \cf4 RHPF\cf3 .ar(delayedSignal, \cf4 Lag\cf3 .kr(phase1, 0.95), q) + \cf4 RLPF\cf3 .ar(delayedSignal, phase1, q);\
+	p2 = \cf4 RHPF\cf3 .ar(p1, \cf4 Lag\cf3 .kr(phase2, 0.95), q) + \cf4 RLPF\cf3 .ar(delayedSignal, phase2, q);\
+	p3 = \cf4 RHPF\cf3 .ar(p2, \cf4 Lag\cf3 .kr(phase3, 0.95), q) + \cf4 RLPF\cf3 .ar(delayedSignal, phase3, q);\
+	delayedSignal = ((p1 * p1Vol) + (p2 * p2Vol) + (p3 * p3Vol));\
+	inny = (\cf4 RLPF\cf3 .ar(delayedSignal, formant, rfq) * \cf4 LPF\cf3 .ar(\cf4 RHPF\cf3 .ar(delayedSignal, formant, rfq) * \cf4 Lag\cf3 .kr(rfbk, 0.95),7000)).distort + ((delayedSignal * fbk).distort);\
+	delayedSignal = \cf4 Compander\cf3 .ar(inny.distort, inny, 0.4, 1, 0, 0.01, 0.01);\
+	delayedSignal = inny.distort;\
+	mixedSignal = \cf4 RLPF\cf3 .ar(delayedSignal + input, 10000);\
+	\cf4 Out\cf3 .ar(4, \cf4 RLPF\cf3 .ar(mixedSignal, cutoff, 0.5));\
+	\cf4 Out\cf3 .ar(0, \cf4 Pan4\cf3 .ar(delayedSignal * gain, 0, 0));\
+	\});\
+)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\cf2 // GUI window\cf3 \
+(\
+g = \cf4 SCWindow\cf3 (\cf5 "Control Panel"\cf3 , \cf4 Rect\cf3 (20, 380, 410, 410));\
+g.alpha = 0.8;\
+g.front;\
+g.view.decorator = \cf4 FlowLayout\cf3 (g.view.bounds);\
+)\
+\cf2 // control sliders\cf3 \
+(\
+\cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "In"\cf3 , \cf4 ControlSpec\cf3 (0.001, 1, \cf6 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~rjk.set(\cf6 \\in\cf3 , ez.value)\}, 1.0);\
+\cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "Cutoff"\cf3 , \cf4 ControlSpec\cf3 (2, 20000, \cf6 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~rjk.set(\cf6 \\cutoff\cf3 , ez.value)\}, 2000);\
+\cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "Phase 1"\cf3 , \cf4 ControlSpec\cf3 (2, 1000, \cf6 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~rjk.set(\cf6 \\phase1\cf3 , ez.value)\}, 2);\
+\cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "Phase 2"\cf3 , \cf4 ControlSpec\cf3 (2, 1000, \cf6 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~rjk.set(\cf6 \\phase2\cf3 , ez.value)\}, 2);\
+\cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "Phase 3"\cf3 , \cf4 ControlSpec\cf3 (2, 1000, \cf6 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~rjk.set(\cf6 \\phase3\cf3 , ez.value)\}, 2);\
+\cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "P1 Vol"\cf3 , \cf4 ControlSpec\cf3 (-1, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~rjk.set(\cf6 \\p1Vol\cf3 , ez.value)\}, 0);\
+\cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "P2 Vol"\cf3 , \cf4 ControlSpec\cf3 (-1, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~rjk.set(\cf6 \\p2Vol\cf3 , ez.value)\}, 0);\
+\cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "P3 Vol"\cf3 , \cf4 ControlSpec\cf3 (-1, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~rjk.set(\cf6 \\p3Vol\cf3 , ez.value)\}, 1);\
+\cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "Formant"\cf3 , \cf4 ControlSpec\cf3 (1, 8000, \cf6 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~rjk.set(\cf6 \\formant\cf3 , ez.value)\}, 500);\
+\cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "FBK"\cf3 , \cf4 ControlSpec\cf3 (0, 4, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~rjk.set(\cf6 \\fbk\cf3 , ez.value)\}, 0.9);\
+\cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "RFBK"\cf3 , \cf4 ControlSpec\cf3 (0, 4, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~rjk.set(\cf6 \\rfbk\cf3 , ez.value)\}, 0);\
+\cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "Q"\cf3 , \cf4 ControlSpec\cf3 (0.001, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~rjk.set(\cf6 \\q\cf3 , ez.value)\}, 1);\
+\cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "RFQ"\cf3 , \cf4 ControlSpec\cf3 (0.001, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~rjk.set(\cf6 \\rfq\cf3 , ez.value)\}, 0);\
+\cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "Vol"\cf3 , \cf4 ControlSpec\cf3 (0.001, 2, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~rjk.set(\cf6 \\gain\cf3 , ez.value)\}, 0.2);\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 )\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\
+\
+\
+\
+\
+\
+\
+\
+\
+}

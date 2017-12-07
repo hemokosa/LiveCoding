@@ -1,0 +1,419 @@
+{\rtf1\ansi\ansicpg932\cocoartf949\cocoasubrtf270
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red191\green0\blue0;\red0\green0\blue0;\red0\green0\blue191;
+\red96\green96\blue96;\red0\green115\blue0;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs36 \cf2 // ================================================================\cf3 \
+\cf2 // SuperCollider Workspace for Prepared & Processed Feedback Guitar\cf3 \
+\cf2 // (c) akihiro kubota, 2008\cf3 \
+\cf2 // ================================================================\cf3 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 ///////////////////////////////////////////////////////////\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf2 //\cf3 \
+\cf2 // setup\cf3 \
+\cf2 //\cf3 \
+\pard\pardeftab560\li1140\fi-1140\ql\qnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // current window\cf3 \
+(\
+\cf4 Document\cf3 .current.font_(\cf4 Font\cf3 (\cf5 "Monaco"\cf3 , 18), -1);\
+\cf4 Document\cf3 .current.background_(\cf4 Color\cf3 .new255(250, 250, 250, 230));\
+\cf4 Document\cf3 .current.stringColor_(\cf4 Color\cf3 .new255(0, 0, 0, 255));\
+\cf4 Document\cf3 .current.bounds_(\cf4 Rect\cf3 (540, 0, 900, 900));\
+\cf4 Document\cf3 .current.syntaxColorize;\
+\
+\cf2 // listener window\cf3 \
+\cf4 Document\cf3 .listener.title_(\cf5 "post"\cf3 );\
+\cf2 //Document.listener.font_(Font("Monaco", 18), -1);\cf3 \
+\cf4 Document\cf3 .listener.bounds_(\cf4 Rect\cf3 (0, 398, 640, 480));\
+\cf4 Document\cf3 .listener.background_(\cf4 Color\cf3 .new255(255, 255, 255, 255));\
+\cf4 Document\cf3 .listener.stringColor_(\cf4 Color\cf3 .new255(0, 0, 0, 255));\
+\cf4 Document\cf3 .listener.syntaxColorize;\
+\
+\cf2 // logging coding activities\cf3 \
+codeDump = \{ \cf4 arg\cf3  x; x.postln; \cf4 Document\cf3 .listener.syntaxColorize; \};\
+\
+\cf2 // history\cf3 \
+\cf4 History\cf3 .clear; \
+\cf4 History\cf3 .start;\
+\
+\cf2 // boot internal server\cf3 \
+\cf4 Server\cf3 .default = s = \cf4 Server\cf3 .internal;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 s.options.blockSize = 8;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 s.options.numWireBufs = 128;\
+s.options.memSize = 16384;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 s.recSampleFormat = \cf5 "int16"\cf3 ;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 s = \cf4 Server\cf3 .default;\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural
+\cf3 if(not(s.serverRunning), \{s.boot\});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\cf2 // create a proxyspace\cf3 \
+p = \cf4 ProxySpace\cf3 .push(s);\
+p.fadeTime = 0.0;\
+p.clock = \cf4 TempoClock\cf3 .default;\
+\
+\cf2 // TdefEditor\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf2 //t = TdefAllGui(16);\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+(\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf2 // monitor the input/outputs:\cf3 \
+o = \cf4 AudioMeter\cf3 .output([0, 1, 2, 8, 9], s);\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\cf2 // spectrum (freqency analyzer)\cf3 \
+w = \cf4 SCWindow\cf3 .new(\cf5 "spectrum"\cf3 , \cf4 Rect\cf3 (0, 350, 512, 300), border: \cf4 false\cf3 );\
+w.alpha_(0.8);\
+f = \cf4 SCFreqScope\cf3 (w, \cf4 Rect\cf3 (0, 0, 513, 301));\
+f.dbRange_(96);\
+f.freqMode_(1);\
+f.inBus_(0);\
+f.active_(\cf4 true\cf3 );\
+w.onClose_(\{ f.kill \});\
+w.front;\
+\
+\cf2 // waveform (stethoscope)\cf3 \
+v = \cf4 SCWindow\cf3 .new(\cf5 "waveform"\cf3 , \cf4 Rect\cf3 (0, 51, 512, 300), border: \cf4 false\cf3 );\
+v.alpha_(0.8);\
+v.view.decorator = \cf4 FlowLayout\cf3 (v.view.bounds);\
+e = \cf4 Stethoscope\cf3 .new(s, 2, zoom:0.2, view:v.view);\
+v.onClose = \{ e.free \};\
+v.front;\
+)\
+\
+\cf2 // history\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf4 History\cf3 .stop;		\cf2 // stop collecting\cf3 \
+\cf4 History\cf3 .document;	\cf2 // create a document with all the changes\cf3 \
+\cf4 History\cf3 .makeWin;	\cf2 // gui window\cf3 \
+\cf4 History\cf3 .play;		\cf2 // posts lines by default\cf3 \
+\cf4 History\cf3 .saveStory(\cf5 "~/Documents/LiveCoding/SC3/History_"\cf3  ++ \cf4 Date\cf3 .getDate.stamp ++ \cf5 ".sc"\cf3 );\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\cf2 // the end\cf3 \
+p.end(30);\
+p.clear.pop;\
+p.free;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 ///////////////////////////////////////////////////////////\cf3 \
+\cf2 //\cf3 \
+\cf2 // processed guitar\cf3 \
+\cf2 //\cf3 \
+\
+(\
+\cf2 // buffer\cf3 \
+x = \cf4 Buffer\cf3 .new(s, 2048, 1); x.alloc;\
+y = \cf4 Buffer\cf3 .new(s, 2048, 1); y.alloc;\
+z = \cf4 Buffer\cf3 .new(s, 2048, 1); z.alloc;\
+a = \cf4 Buffer\cf3 .new(s, 512, 1); a.alloc;\
+b = \cf4 Buffer\cf3 .new(s, 512, 1); b.alloc;\
+\cf2 // proxies\cf3 \
+~in1.ar(1);\
+~in2.ar(1);\
+~mix.ar(1);\
+~pre.ar(1);\
+~fft1.ar(1);\
+~fft2.ar(1);\
+~fft3.ar(1);\
+~feedback.ar(1);\
+~post.ar(1);\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 ~out.ar(3);\
+~out.play;\
+~out.vol = 1.0;\
+\cf2 // routing\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 ~in1 = \{ \cf4 AudioIn\cf3 .ar(1) \};\
+~in2 = \{ \cf4 FreeVerb\cf3 .ar(\cf4 AudioIn\cf3 .ar(2), 0.25, 0.15, 0.5) \};\
+~mix = ~in1 + ~in2;\
+~pre = ~mix;\
+~fft1 = ~pre;\
+~fft2 = ~fft1;\
+~feedback = ~in1;\
+~post = ~fft2 + ~in2;\
+~out = \{ [~post.ar, ~post.ar, ~feedback.ar] \};\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 )\
+\
+\cf2 ////////////////////////////////////////////////////////////\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+(\
+\cf2 // proxies\cf3 \
+~dur.kr(1);\
+~onset1.kr(1);\
+~onset2.kr(1);\
+~peak.kr(1);\
+\cf2 // controls (machine listening)\cf3 \
+~dur = \{ \cf4 Lag\cf3 .kr(\cf4 Amplitude\cf3 .kr(~mix.ar, 0.01, 0.99994), 1.0).ampdb > -40 \};\
+~onset1 = \{ \cf4 Onsets\cf3 .kr(\cf4 FFT\cf3 (a, ~in1.ar), 0.7, \cf6 \\wphase\cf3 ) \};\
+~onset2 = \{ \cf4 Onsets\cf3 .kr(\cf4 FFT\cf3 (b, ~in2.ar), 0.5, \cf6 \\magsum\cf3 ) \};\
+~peak = \{ \cf4 PeakFollower\cf3 .kr(~mix.ar, 0.99994) \};\
+)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 \
+\cf2 ////////////////////////////////////////////////////////////\cf3 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // input\cf3 \
+\
+~in1 = \{ \cf4 AudioIn\cf3 .ar(1) \};\
+~in2 = \{ \cf4 AudioIn\cf3 .ar(2) \};\
+~in2 = \{ \cf4 FreeVerb\cf3 .ar(\cf4 AudioIn\cf3 .ar(2), 0.25, 0.15, 0.5) \};\
+~mix = ~in1 + ~in2;\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf2 ////////////////////////////////////////////////////////////\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 //\cf3 \
+\cf2 // preprocessing\cf3 \
+\cf2 //\cf3 \
+~pre = ~mix;\
+\
+\cf2 // tone\cf3 \
+~pre = \{ \cf4 SinOsc\cf3 .ar(\cf4 Demand\cf3 .kr(\cf4 TDelay\cf3 .kr(~onset1.kr, 0.1), 0, \cf4 ZeroCrossing\cf3 .ar(~in1.ar)), 0, 0.005, ~mix.ar) \};\
+\
+\cf2 // ring\cf3 \
+~pre = \{ \cf4 Impulse\cf3 .ar(\cf4 SampleRate\cf3 .ir/2, 0, ~mix.ar) \};\
+~pre = \{ \cf4 SinOsc\cf3 .ar(\cf4 Demand\cf3 .kr(\cf4 TDelay\cf3 .kr(~onset1.kr, 0.1), 0, \cf4 ZeroCrossing\cf3 .ar(~in1.ar)), 0, ~mix.ar * 0.5, ~mix.ar) * 0.5 \};\
+\
+\cf2 // harmonizer\cf3 \
+~pre = \{ \cf4 Mix\cf3 .ar(\cf4 PitchShift\cf3 .ar(~mix.ar, 0.1, [0.5, 1.0, 2.0], mul:0.7)) \};\
+\
+\cf2 // detune\cf3 \
+~pre = \{ \cf4 PitchShift\cf3 .ar(~mix.ar, 0.1, \cf4 Demand\cf3 .kr(~onset2.kr, 0, \cf4 Drand\cf3 ([0.9, 1, 1, 1, 1, 1.1], \cf4 inf\cf3 )).postln) \};\
+\
+\cf2 // chorking\cf3 \
+~pre = \{ \cf4 FreqShift\cf3 .ar(~mix.ar, \cf4 EnvGen\cf3 .kr(\cf4 Env\cf3 .new([1, \cf4 Demand\cf3 .kr(~onset1.kr, 0, \cf4 Drand\cf3 ([20, 50, -20, -50], \cf4 inf\cf3 )), 1], [10, 10]), ~onset1.kr)) \};\
+\
+\
+\cf2 ////////////////////////////////////////////////////////////\cf3 \
+\
+~fft1 = ~pre;\
+\
+\cf2 // fft1\cf3 \
+(\
+~fft1 = \{ \cf4 var\cf3  in, chain;\
+	in = ~pre.ar;\
+	chain = \cf4 FFT\cf3 (x, in);\
+	chain = \cf4 PV_BinShift\cf3 (chain, 0.9, \cf4 Ramp\cf3 .kr(~peak.kr, 10, -1));\
+	\cf4 IFFT\cf3 (chain) \};\
+)\
+\
+(\
+~fft1 = \{ \cf4 var\cf3  in, chain;\
+	in = ~pre.ar;\
+	chain = \cf4 FFT\cf3 (x, in);\
+	chain = \cf4 PV_BinScramble\cf3 (chain, \cf4 Ramp\cf3 .kr(~peak.kr, 1, -1, 1), \cf4 Ramp\cf3 .kr(~peak.kr, 1, 0, 0.01), ~onset1.kr); \
+	\cf4 IFFT\cf3 (chain) \};\
+)\
+\
+(\
+~fft1 = \{ \cf4 var\cf3  in, chain;\
+	in = ~pre.ar;\
+	chain = \cf4 FFT\cf3 (x, in);\
+	chain = \cf4 PV_BinScramble\cf3 (chain, \cf4 Ramp\cf3 .kr(~peak.kr, 1, 1), 0.5, ~onset1.kr);\
+	chain = \cf4 PV_MagSmear\cf3 (chain, 10);\
+	\cf4 IFFT\cf3 (chain) \};\
+)\
+\
+(\
+~fft1 = \{ \cf4 var\cf3  in, chain;\
+	in = ~pre.ar;\
+	chain = \cf4 FFT\cf3 (x, in);\
+	chain = \cf4 PV_MagSquared\cf3 (chain);\
+	chain = \cf4 PV_MagClip\cf3 (chain, 5);\
+	\cf4 IFFT\cf3 (chain) \};\
+)\
+\
+(\
+~fft1 = \{ \cf4 var\cf3  in, chain;\
+	in = ~pre.ar;\
+	chain = \cf4 FFT\cf3 (x, in);\
+	chain = \cf4 PV_MagShift\cf3 (chain, \cf4 Ramp\cf3 .kr(~peak.kr, 10, 1, 1), \cf4 Ramp\cf3 .kr(~peak.kr, 10, -1));\
+	\cf4 IFFT\cf3 (chain) \};\
+)\
+\
+(\
+~fft1 = \{ \cf4 var\cf3  in, chain;\
+	in = ~pre.ar;\
+	chain = \cf4 FFT\cf3 (x, in);\
+	chain = \cf4 PV_MagSmear\cf3 (chain, \cf4 Ramp\cf3 .kr(~peak.kr, 1, 10, 20));\
+	\cf4 IFFT\cf3 (chain) \};\
+)\
+\
+(\
+~fft1 = \{ \cf4 var\cf3  in, chain;\
+	in = ~pre.ar;\
+	chain = \cf4 FFT\cf3 (x, in);\
+	chain = \cf4 PV_MagNoise\cf3 (chain);\
+	\cf4 IFFT\cf3 (chain) \};\
+)\
+\
+(\
+~fft1 = \{ \cf4 var\cf3  in, chain, n;\
+	in = ~pre.ar;\
+	n = 10;\
+	chain = \cf4 FFT\cf3 (x, in);\
+	chain = chain.pvcalc(x.numFrames, \{\cf4 |mags, phases|\cf3 \
+		[mags[n..] ++ mags[..n], phases[n..] ++ phases[..n]];\
+	\}, frombin: 0, tobin: 2048, zeroothers: 0);\
+	\cf4 IFFT\cf3 (chain) \};\
+)\
+\pard\pardeftab720\ql\qnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 (\
+~fft1 = \{ \cf4 var\cf3  in, chain, n;\
+	in = ~pre.ar;\
+	chain = \cf4 FFT\cf3 (x, in);\
+	chain = chain.pvcalc(x.numFrames, \{\cf4 |mags, phases|\cf3 \
+		[mags, phases.reverse];\
+	\}, frombin: 0, tobin: 2048, zeroothers: 0);\
+	\cf4 IFFT\cf3 (chain) \};\
+)\
+\pard\pardeftab720\ql\qnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 (\
+~fft1 = \{ \cf4 var\cf3  in, chain;\
+	in = ~pre.ar;\
+	chain = \cf4 FFT\cf3 (x, in);\
+	chain = chain.pvcollect(a.numFrames, \{\cf4 |mag, phase, index|\cf3 \
+		if(index % 5 == 0, mag, 0); \cf2 // Comb filter\cf3 \
+	\}, frombin: 0, tobin: 2048, zeroothers: 0);\
+	chain = \cf4 PV_MagSmear\cf3 (chain, 10);\
+	\cf4 IFFT\cf3 (chain) * 20\};\
+)\
+\
+(\
+\cf4 var\cf3  list;\
+list= \cf4 Array\cf3 .fill(64, 0).put(32, 1);\
+~fft1 = \{ \cf4 var\cf3  in, chain;\
+	in = ~pre.ar;\
+	chain = \cf4 FFT\cf3 (x, in);\
+	chain = chain.pvcollect(x.numFrames, \{\cf4 |mag, phase, index|\cf3 \
+		[mag * \cf4 Drand\cf3 ([1, 0, 1, 0, 1, 0, 1, 0].stutter(4), \cf4 inf\cf3 )];\
+	\}, frombin: 0, tobin: 2048, zeroothers: 0);\
+	\cf4 IFFT\cf3 (chain) \};\
+)\
+\
+\
+\pard\pardeftab720\ql\qnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 ////////////////////////////////////////////////////////////\cf3 \
+\
+~fft2 = ~fft1;\
+\
+\cf2 // fft2\cf3 \
+(\
+~fft2 = \{ \cf4 var\cf3  in, delay, chain;\
+	in = ~fft1.ar;\
+	delay = 0.1;\
+	chain = \cf4 FFT\cf3 (y, in);\
+	chain = \cf4 PV_Freeze\cf3 (chain, \cf4 DelayC\cf3 .kr(~dur.kr, delay, delay));\
+	\cf4 IFFT\cf3 (chain) + in \};\
+)\
+\
+(\
+~fft2 = \{ \cf4 var\cf3  in, delay, chain;\
+	in = ~fft1.ar;\
+	delay = 0.1;\
+	chain = \cf4 FFT\cf3 (y, in);\
+	chain = \cf4 PV_MagFreeze\cf3 (chain, \cf4 DelayC\cf3 .kr(~dur.kr, delay, delay));\
+	(\cf4 LFPulse\cf3 .kr(0.8, 0, 0.5) * \cf4 IFFT\cf3 (chain)) + in \};\
+)\
+\
+(\
+~fft2 = \{ \cf4 var\cf3  in, delay, chain;\
+	in = ~fft1.ar;\
+	delay = 1;\
+	chain = \cf4 FFT\cf3 (y, in);\
+	chain = \cf4 PV_Freeze\cf3 (chain, \cf4 DelayC\cf3 .kr(~dur.kr, delay, delay));\
+	\cf4 IFFT\cf3 (chain) * ~peak.kr + in \};\
+)\
+\
+(\
+~fft2 = \{ \cf4 var\cf3  in, chain;\
+	in = ~fft1.ar;\
+	chain = \cf4 FFT\cf3 (y, in);\
+	chain = \cf4 PV_Freeze\cf3 (chain, \cf4 LFPulse\cf3 .kr(1, 0, 0.9));\
+	\cf4 IFFT\cf3 (chain) + in \};\
+)\
+\
+\cf2 ////////////////////////////////////////////////////////////\cf3 \
+\cf2 //\cf3 \
+\cf2 // feedback\cf3 \
+\cf2 //\cf3 \
+~feedback = \cf4 nil\cf3 ;\
+~feedback = ~fft3;\
+~feedback = \{ \cf4 SinOsc\cf3 .ar(\cf4 Demand\cf3 .kr(\cf4 TDelay\cf3 .kr(~onset1.kr, 0.1), 0, \cf4 ZeroCrossing\cf3 .ar(~in1.ar)), 0, 0.1) \};\
+~feedback = \{ \cf4 DelayC\cf3 .ar(~pre.ar, 1.0, 1.0) \};\
+~feedback = \{ \cf4 DelayC\cf3 .ar(\cf4 PitchShift\cf3 .ar(~in2.ar, 0.1, 1.1), 1.0, 1.0) \};\
+\
+\cf2 // fft3\cf3 \
+(\
+~fft3 = \{ \cf4 var\cf3  in, delay, chain;\
+	in = ~in2.ar;\
+	delay = 3.0;\
+	chain = \cf4 FFT\cf3 (z, in);\
+	chain = \cf4 PV_Freeze\cf3 (chain, \cf4 DelayC\cf3 .kr(~dur.kr, delay, delay));\
+	\cf4 IFFT\cf3 (chain)  \};\
+)\
+\
+(\
+~fft3 = \{ \cf4 var\cf3  in, delay, chain;\
+	in = ~in1.ar;\
+	delay = 1.0;\
+	chain = \cf4 FFT\cf3 (z, in);\
+	chain = \cf4 PV_MagFreeze\cf3 (chain, \cf4 DelayC\cf3 .kr(~dur.kr, delay, delay));\
+	(\cf4 LFPulse\cf3 .kr(0.8, 0, 0.5) * \cf4 IFFT\cf3 (chain))\};\
+)\
+\
+\
+\cf2 ////////////////////////////////////////////////////////////\cf3 \
+\cf2 //\cf3 \
+\cf2 // postprocess\cf3 \
+\cf2 //\cf3 \
+~post = ~fft2;\
+~post = ~fft2.distort;\
+~post = ~fft2.softclip;\
+\
+~post = ~fft2 + ~in2;\
+\
+\cf2 // exciter\cf3 \
+~post = \{ \cf4 HPF\cf3 .ar(\cf4 AllpassC\cf3 .ar(~fft2.ar, 0.001, 0.001, 20), 3000, 2, ~fft2.ar) \};\
+\
+\cf2 // distortion\cf3 \
+~post = \{ \cf4 Clip\cf3 .ar(~fft2.ar * 10, -0.05, 0.07) \};\
+\
+\
+\cf2 ////////////////////////////////////////////////////////////\cf3 \
+\
+\cf2 // output\cf3 \
+~out = \{ ~post.ar ! 2 ++ ~feedback.ar \};\
+\
+~out = \{ \cf4 FreeVerb\cf3 .ar(~post.ar, 0.25, 0.3, 0.7) ! 2 ++ ~feedback.ar \};\
+~out = \{ \cf4 FreeVerb\cf3 .ar(~post.ar, 0.25, 0.7, 0.3) ! 2 ++ ~feedback.ar \};\
+\
+~out = \{ \cf4 Pan2\cf3 .ar(~post.ar, \cf4 Demand\cf3 .kr(~onset2.kr, 0, \cf4 Drand\cf3 ([-1.0, -0.5, 0, 0.5, 1.0], \cf4 inf\cf3 )), 2.0)  ++ ~feedback.ar \};\
+\
+~out = \{ \cf4 DelayC\cf3 .ar(~post.ar, 2.0, \cf4 LFNoise2\cf3 .kr(0.1 ! 2, 0.5, 1.5)) ++ ~feedback.ar \};\
+\
+\cf2 ////////////////////////////////////////////////////////////\cf3 \
+}

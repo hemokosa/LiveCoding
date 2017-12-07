@@ -1,0 +1,830 @@
+{\rtf1\mac\ansicpg10000\cocoartf824\cocoasubrtf100
+{\fonttbl\f0\fnil\fcharset77 Monaco;\f1\fnil\fcharset78 Osaka-Mono;}
+{\colortbl;\red255\green255\blue255;\red191\green0\blue0;\red0\green0\blue0;\red0\green0\blue191;
+\red96\green96\blue96;\red0\green115\blue0;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0\fs24 \cf2 //\cf3 \
+\cf2 // SC3 Live Coding Performance Template   (c) akihiro kubota, 2005\cf3 \
+\cf2 //\cf3 \
+\
+\cf2 // boot internal server and create a new proxyspace\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs36 \cf3 (\
+\cf4 Server\cf3 .default = \cf4 Server\cf3 .internal;\
+\cf2 // Server.default.options.numWireBufs = 128;\cf3 \
+\cf4 Server\cf3 .default.options.memSize = 32768;\
+s = \cf4 Server\cf3 .default;\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural
+\cf3 if(not(s.serverRunning), \{s.boot\});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 p = \cf4 ProxySpace\cf3 .push(s);\
+p.fadeTime = 10;\
+)\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs24 \cf3 (\
+\cf4 Document\cf3 .listener.background_(\cf4 Color\cf3 .new255(50, 60, 70, 245));\
+\cf4 Document\cf3 .listener.stringColor_(\cf4 Color\cf3 .new255(245, 255, 255, 145));\
+\cf4 Document\cf3 .current.stringColor_(\cf4 Color\cf3 .new255(0, 0, 0, 255));\
+\cf4 Document\cf3 .current.background_(\cf4 Color\cf3 .new255(250, 250, 250, 240));\
+\cf4 Document\cf3 .current.syntaxColorize;\
+)\
+\
+\cf4 Symbol\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs36 \cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs24 \cf2 // the end\cf3 \
+p.end(30);\
+p.clear.pop;\
+p.free;\
+\
+\cf4 UGen\cf3 .browse
+\f1 \'81\'47\
+
+\f0 currentEnvironment.postln;\
+\cf4 Server\cf3 .internal.makeWindow;\
+\
+\cf4 Document\cf3 \
+\cf2 // freqency analyzer\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs36 \cf4 FreqScope\cf3 .new(200, 0);\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs24 \cf3 \
+(\
+w = \cf4 SCWindow\cf3 (\cf5 "Frequency Domain"\cf3 , \cf4 Rect\cf3 (0, 0, 511, 300));\
+f = \cf4 SCFreqScope\cf3 (w, w.view.bounds);\
+f.active_(\cf4 true\cf3 );\
+w.onClose_(\{ f.kill \});\
+w.front;\
+)\
+\
+f.freqMode_(0);\
+f.freqMode_(1);\
+f.inBus_(0);\
+f.dbRange_(100);\
+f.active_(\cf4 false\cf3 );\
+f.active_(\cf4 true\cf3 );\
+\
+\
+\cf2 // define and monitor proxies\cf3 \
+\
+(\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs36 \cf3 ~in.ar(2);\
+~in.play;\
+~in.vol = 0.5;\
+\
+~out.ar(2);\
+~out.play;\
+~out.vol = 0.5;\
+~out.scope;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs24 \cf3 )\
+\
+\cf2 // simple timer\cf3 \
+(\
+\cf4 var\cf3  w, r, t, i = 0;\
+w = \cf4 SCWindow\cf3 (\cf5 "timer"\cf3 , \cf4 Rect\cf3 (300, 600, 220, 90));\
+w.alpha = 0.8;\
+w.front;\
+w.view.background_(\cf4 Color\cf3 .black);\
+w.view.decorator = \cf4 FlowLayout\cf3 (w.view.bounds);\
+t = \cf4 SCStaticText\cf3 (w, 200@80).font_(\cf4 Font\cf3 (\cf5 "Monaco"\cf3 , 66)).stringColor_(\cf4 Color\cf3 .red);\
+t.align = \cf6 \\right\cf3 ;\
+r = \cf4 Routine\cf3 \{\
+	loop(\{ \
+		i = i + 1;\
+		1.wait;\
+		t.string_(i.asString);\
+		w.bounds = w.bounds.moveBy(10.rand2, 10.rand2);\
+		w.alpha = cos(i * 0.1pi) * 0.6 + 0.2;\
+		w.refresh;\
+	\});\
+\};\
+\cf4 AppClock\cf3 .play(r);\
+w.onClose_(\{r.stop\});\
+)\
+\
+\cf2 // melodies\cf3 \
+\
+\cf2 // dynamic stochastic synthesis by xenakis\cf3 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs36 \cf3 ~dss.ar(2);\
+~dss.fadeTime = 4;\
+~dss.vol = 0.5;\
+~dss.play;\
+~dss.stop;\
+~dss.scope;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs24 \cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs36 \cf3 (\
+~dss = \{ \
+	\cf4 arg\cf3  ampdist=3, durdist=2, adparam=1.0, ddparam=1.0, freq=80, \
+	ampscale=0.5, durscale=0.5, initCPs=12, knum=12,\
+	mul=0.2, add=0.0, pan=0.0;\
+	\cf4 Pan2\cf3 .ar(\
+		\cf4 Gendy3\cf3 .ar(	\
+			ampdist, durdist, adparam, ddparam, freq, \
+			ampscale, durscale, initCPs, knum, mul, add),\
+		pan\
+	)\
+\};\
+)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs24 \cf3 \
+~in = ~dss;\
+~dss = \cf4 nil\cf3 ;\
+\
+\cf2 // dots\cf3 \
+\
+~dots.ar(2);\
+~dots = \{ \cf4 Impulse\cf3 .ar([11, 10], [0.0, 0.5], 0.5, 0) \};\
+~dots = \{ \cf4 Decay\cf3 .ar(\cf4 Impulse\cf3 .ar([22, 24], [0.0, 0.5], 0.1, 0), 0.1) \};\
+~dots = \{ \cf4 Blip\cf3 .ar([rrand(32, 15), rrand(32, 15)], 100, 0.5) \};\
+~in = ~dss + ~dots;\
+~in.scope;\
+\
+\cf2 // harmony (lines)\cf3 \
+~lines.ar(2);\
+~lines.vol = 0.5;\
+~lines.fadeTime = 0.1;\
+~lines.scope;\
+~lines.play;\
+~lines.stop;\
+~line.end;\
+\
+(\
+~lines = \{\
+	\cf4 arg\cf3  dur = 60;\
+	\cf4 var\cf3  farray1, farray2, aarray1, aarray2, parray1, parray2;\
+	farray1 = \cf4 Control\cf3 .names(\cf6 \\farray1\cf3 ).kr(\cf4 Array\cf3 .fill(36, 0));\
+	farray2 = \cf4 Control\cf3 .names(\cf6 \\farray2\cf3 ).kr(\cf4 Array\cf3 .fill(36, 0));\
+	aarray1 = \cf4 Control\cf3 .names(\cf6 \\aarray1\cf3 ).kr(\cf4 Array\cf3 .fill(36, 0));\
+	aarray2 = \cf4 Control\cf3 .names(\cf6 \\aarray2\cf3 ).kr(\cf4 Array\cf3 .fill(36, 0));\
+	parray1 = \cf4 Control\cf3 .names(\cf6 \\parray1\cf3 ).kr(\cf4 Array\cf3 .fill(36, 0));\
+	parray2 = \cf4 Control\cf3 .names(\cf6 \\parray2\cf3 ).kr(\cf4 Array\cf3 .fill(36, 0));\
+	\cf4 Mix\cf3 .new(\
+		\cf4 Pan2\cf3 .ar(\
+			\cf4 SinOsc\cf3 .ar(\
+				\cf4 Line\cf3 .kr(farray1, farray2, dur),\
+				0.0,\
+				\cf4 Line\cf3 .kr(aarray1, aarray2, dur),\
+				0.0),\
+			\cf4 Line\cf3 .kr(parray1, parray2, dur), 1.0))\};\
+)\
+\
+\
+t = \cf4 TaskProxy\cf3 .basicNew;\
+\
+(\
+\cf4 var\cf3  fmw, amw;\
+fmw = \cf4 SCWindow\cf3 (\cf5 "frequency matrix"\cf3 , \cf4 Rect\cf3 (128, 164, 240, 480));\
+amw = \cf4 SCWindow\cf3 (\cf5 "amplitude matrix"\cf3 , \cf4 Rect\cf3 (138, 174, 240, 480));\
+fmw.view.background = \cf4 Color\cf3 .gray(0.9);\
+amw.view.background = \cf4 Color\cf3 .gray(0.9);\
+fmw.alpha = 0.8;\
+amw.alpha = 0.8;\
+fmw.onClose = \{ t.stop; \};\
+amw.onClose = \{ t.stop; \};\
+fmw.front;\
+amw.front;\
+t.source = \{\
+		\cf4 var\cf3  fbase, dt, t = 0;\
+		\cf4 var\cf3  fseries, fprime, fgeom, fchord, fchoose, fmatrix1, fmatrix2;\
+		\cf4 var\cf3  aseries, adist, amatrix1, amatrix2;\
+		fmw.drawHook = \{ \cf4 Pen\cf3 .addField((fmatrix1 ++ fmatrix2), fmw.bounds) \};\
+		amw.drawHook = \{ \cf4 Pen\cf3 .addField((amatrix1 ++ amatrix2), amw.bounds) \};\
+		loop(\{\
+			fbase = (1000.0 + 50.0.sum3rand).postln;\
+			fseries = \cf4 Array\cf3 .series(6, 1, rrand(1.0, 2.0));\
+			fprime = (0..5).nthPrime;\
+			fgeom = \cf4 Array\cf3 .geom(6, 1, [2.sqrt.sqrt, 1.2, 1.25, 2.sqrt].choose);\
+			fchord = [[1, 6/5, 3/2, 15/8, 9/4, 8/3], [1, 5/4, 3/2, 16/9, 9/4, 8.sqrt]];\
+			fchoose = [fseries, fprime].choose.postln;\
+			fmatrix1 = fchord.choose * .t fchoose.reciprocal;\
+			fmatrix2 = fmatrix1;\
+			fmw.refresh;\
+			aseries = \cf4 Array\cf3 .series(6, 1, 1);\
+			adist = \cf4 Array\cf3 .fill2D(6, 6, \{\cf4 |i, j|\cf3  abs(i-j)\}).flat;\
+			amatrix1 = \cf4 Array\cf3 .rand(6, 0.7, 1.0) * .t aseries;\
+			amatrix2 = \cf4 Array\cf3 .rand(6, 0.7, 1.0) * .t aseries.reciprocal;\
+			amw.refresh;\
+			dt = rrand(30.0, 40.0).postln;\
+			~lines.fadeTime = dt;\
+			~lines.set(\cf6 \\dur\cf3 , dt);\
+			~lines.setn(\
+				\cf6 \\farray1\cf3 , (fmatrix1.flat * fbase) + \cf4 Array\cf3 .fill(36, t).sum3rand,\
+				\cf6 \\farray2\cf3 , (fmatrix2.flat * fbase) + \cf4 Array\cf3 .fill(36, t).sum3rand,				\cf6 \\aarray1\cf3 , amatrix1.flat.normalizeSum,\
+				\cf6 \\aarray2\cf3 , amatrix2.flat.normalizeSum,				\cf6 \\parray1\cf3 , \cf4 Array\cf3 .fill(36, 1.0).rand2,				\cf6 \\parray2\cf3 , \cf4 Array\cf3 .fill(36, 1.0).rand2\
+			).rebuild;\
+			t = (t + (dt/10.0)).postln;\
+			dt.wait;\
+		\});\
+\};\
+)\
+\
+t.play(\cf4 AppClock\cf3 );\
+t.stop;\
+\
+(\
+\cf4 var\cf3  fmw, amw;\
+fmw = \cf4 SCWindow\cf3 (\cf5 "frequency matrix"\cf3 , \cf4 Rect\cf3 (128, 164, 360, 320));\
+amw = \cf4 SCWindow\cf3 (\cf5 "amplitude matrix"\cf3 , \cf4 Rect\cf3 (138, 174, 360, 320));\
+fmw.view.background = \cf4 Color\cf3 .gray(0.9);\
+amw.view.background = \cf4 Color\cf3 .gray(0.9);\
+fmw.onClose = \{ t.stop; \};\
+amw.onClose = \{ t.stop; \};\
+fmw.front;\
+amw.front;\
+t.source = \{\
+		\cf4 var\cf3  fbase, dt, t = 0;\
+		\cf4 var\cf3  fchord, fseries, fprime, fchoose, fmatrix1, fmatrix2;\
+		\cf4 var\cf3  achord, atone, amatrix1, amatrix2;\
+		fmw.drawHook = \{ \cf4 Pen\cf3 .addField((fmatrix1 ++ fmatrix2), fmw.bounds) \};\
+		amw.drawHook = \{ \cf4 Pen\cf3 .addField((amatrix1 ++ amatrix2), amw.bounds) \};\
+		loop(\{\
+			fbase = (220.0 + 20.0.sum3rand).postln;\
+			fchord = [[6/5, 3/2, 15/8, 9/4], [5/4, 3/2, 16/9, 9/4]];\
+			fseries = (5..2).reciprocal ++ (1..5);\
+			fprime = (3..0).nthPrime.reciprocal ++ [1] ++ (0..3).nthPrime;\
+			fchoose = [fseries, fprime].choose.postln;\
+			fmatrix1 = fchord.choose * .t fchoose;\
+			fmatrix2 = fmatrix1;\
+			fmw.refresh;\
+			achord = \cf4 Array\cf3 .rand(4, 0.7, 1.0);\
+			atone = (5..2) ++ (1..5);\
+			amatrix1 = \cf4 Array\cf3 .rand(4, 0.7, 1.0) * .t atone.reciprocal;\
+			amatrix2 = \cf4 Array\cf3 .rand(4, 0.7, 1.0) * .t atone;\
+			amw.refresh;\
+			dt = rrand(30.0, 40.0).postln;\
+			~lines.fadeTime = dt;\
+			~lines.set(\cf6 \\dur\cf3 , dt);\
+			~lines.setn(\
+				\cf6 \\farray1\cf3 , (fmatrix1.flat * fbase) + \cf4 Array\cf3 .fill(36, t).sum3rand,\
+				\cf6 \\farray2\cf3 , (fmatrix2.flat * fbase) + \cf4 Array\cf3 .fill(36, t).sum3rand,				\cf6 \\aarray1\cf3 , amatrix1.flat.normalizeSum,\
+				\cf6 \\aarray2\cf3 , amatrix2.flat.normalizeSum,				\cf6 \\parray1\cf3 , \cf4 Array\cf3 .fill(36, 1.0).rand2,				\cf6 \\parray2\cf3 , \cf4 Array\cf3 .fill(36, 1.0).rand2\
+			).rebuild;\
+			t = (t + (dt/10.0)).postln;\
+			dt.wait;\
+		\});\
+\};\
+)\
+\
+t.play(\cf4 AppClock\cf3 );\
+t.stop\
+\
+~in = ~dss + ~dots + ~lines;\
+\
+~in = ~dots;\
+\
+\cf2 // line\cf3 \
+~line.ar(2);\
+~line = \{ \cf4 SinOsc\cf3 .ar([60, 70], 0.0, 0.001, 0) \};\
+~line = \{ \cf4 SinOsc\cf3 .ar(100.dup, 0.0, 0.2, 0).distort \};\
+~line = \{ \cf4 SinOsc\cf3 .ar([9025, 9000], 0.0, 0.2, 0) \};\
+~line = \{ \cf4 SinOsc\cf3 .ar([56, 50], 0.0, 0.3, 0) + \cf4 SinOsc\cf3 .ar([6800, 7000], 0.0, 0.05, 0) \};\
+\
+\cf2 // plane\cf3 \
+~plane.ar(2);\
+~plane = \{ \cf4 BrownNoise\cf3 .ar([0.1, 0.1]) \};\
+~plane = \{ \cf4 ClipNoise\cf3 .ar([0.1, 0.1]) \};\
+\
+\cf2 //\cf3 \
+\cf2 //\cf3 \
+\cf2 // microphone\cf3 \
+~micin.ar(2);\
+~micin = \{ \cf4 AudioIn\cf3 .ar([1, 2]) \};\
+~micin = \{ \cf4 Normalizer\cf3 .ar(\cf4 AudioIn\cf3 .ar([1, 2]), 0.1, 0.01) \};\
+~micin = \{ \cf4 Normalizer\cf3 .ar(\cf4 AudioIn\cf3 .ar([1, 2]) * \cf4 FSinOsc\cf3 .ar(rrand(300.0, 500.0)), 0.2, 0.01) \};\
+~micin = \{ \cf4 Normalizer\cf3 .ar(\cf4 PitchShift\cf3 .ar(\cf4 AudioIn\cf3 .ar([1, 2]), 0.5, 0.9, 0.1, 0.01), 0.1, 0.01) \};\
+\
+~in = ~dss + ~dots + ~line + ~lines + ~plane + ~micin;\
+\
+\cf2 // feedback\cf3 \
+~feedback = \{ \cf4 InFeedback\cf3 .ar([1, 0], 2) * 0.5 \};\
+~feedback = \{ \cf4 InFeedback\cf3 .ar([0, 1], 2) * 0.5 \};\
+~feedback = \{ \cf4 InFeedback\cf3 .ar([1, 0], 2) * [\cf4 LFNoise1\cf3 .kr(0.1.rand), \cf4 LFNoise1\cf3 .kr(0.1.rand)] \};\
+~feedback = \{ \cf4 DelayN\cf3 .ar((\cf4 InFeedback\cf3 .ar([1, 0], 2) * 0.5), 1.0, [rrand(0.5, 1.0), rrand(0.5, 1.0)]) \};\
+~feedback = \{ \cf4 PitchShift\cf3 .ar(\cf4 InFeedback\cf3 .ar([1, 0], 2), 1.1, 0.7, 0.1, 0.01, 0.5)\};\
+\
+~in = ~dss + ~dots + ~line + ~lines + ~plane + ~micin + ~feedback;\
+\
+\
+\
+\
+\cf2 // pitch follower (auto line)\cf3 \
+~source.ar(2);\
+~source = ~feedback;\
+~melodies = ~dss + ~dots + ~line + ~lines + ~plane;\
+~source = ~melodies;\
+~sfreq = \{ \cf4 Amplitude\cf3 .kr(\cf4 ZeroCrossing\cf3 .ar(~source.ar), 0.05, 0.05) \};\
+~sfreq = \{ \cf4 Pitch\cf3 .kr(~source.ar, ampThreshold: 0.02, median: 7) \};\
+~samp = \{ \cf4 Amplitude\cf3 .kr(~source.ar, 0.05, 0.05, 0.5) \};\
+~follow = \{ \cf4 SinOsc\cf3 .ar(~sfreq.kr * 1.01, 0, ~samp.kr, 0) \};\
+\
+~in = ~melodies + ~micin + ~feedback + ~follow;\
+\
+\
+\cf2 // bbcut (break beats feedback)\cf3 \
+b = \cf4 Buffer\cf3 .alloc(\cf4 BBCut\cf3 .server, 44100*4, 1);\
+b.bufnum;\
+f = \cf4 SF3\cf3 .newFromBuf(b, 4, 44100);\
+~rec = \{ \cf4 RecordBuf\cf3 .ar(\cf4 AudioIn\cf3 .ar(1), b.bufnum, 0, 0.5, 0.5, 1, 1) \};\
+~rec = \{ \cf4 RecordBuf\cf3 .ar((\cf4 AudioIn\cf3 .ar(1) + \cf4 SinOsc\cf3 .ar(100)), b.bufnum, 0, 0.5, 0.5, 1, 1) \};\
+~rec = \{ \cf4 RecordBuf\cf3 .ar(\cf4 Mix\cf3 (\cf4 InFeedback\cf3 .ar([0, 1], 2)), b.bufnum, 0, 0.5, 0.5, 1, 1) \};\
+~rec = \{ \cf4 RecordBuf\cf3 .ar(~melodies.ar, b.bufnum, 0, 0.5, 1.0, 1, 1) \};\
+~cut = \cf4 BBCut\cf3 (\cf4 BBCutSynthSF\cf3 (f, 0.4, panfunc:\{1.0.rand2\}), \cf4 BBCutProc11\cf3 .new).tempo_(1.2);\
+~cut = \cf4 BBCut\cf3 (\cf4 BBCutSynthSF\cf3 (f, 0.4, panfunc:\{1.0.rand2\}), \cf4 SQPusher1\cf3 .new(0.2)).tempo_(2.5);\
+~cut = \cf4 BBCut\cf3 (\cf4 BBCutSynthSF\cf3 (f, 0.4, panfunc:\{1.0.rand2\}), \cf4 RecursiveCutProc1\cf3 .new).tempo_(1.5);\
+~cut = \cf4 BBCut\cf3 ([\cf4 BBCutSynthSF\cf3 (f, 0.4, panfunc:\{1.0.rand2\}), \cf4 BBCSPost\cf3 .new], \cf4 BBCutProc11\cf3 .new).tempo_(1.2);\
+\
+~in = ~melodies + ~micin + ~feedback + ~follow + ~cut;\
+\
+\
+\
+\cf2 // nonlinear feedback loops\cf3 \
+(\
+~delayedInput = \{ \cf4 CombN\cf3 .ar(~in.ar, 0.1, [0.1, 0.1].rand, [3, 3].rand2) \};\
+\
+~q = 0.5;\
+\
+~freq1 = 5000;\
+~freq2 = 500;\
+~freq3 = 50;\
+\
+~p1 = \{ \cf4 RHPF\cf3 .ar(~delayedInput.ar, ~freq1.kr, ~q.kr) + \cf4 RLPF\cf3 .ar(~delayedInput.ar, ~freq1.kr, ~q.kr) \};\
+~p2 = \{ \cf4 RHPF\cf3 .ar(~p1.ar, ~freq2.kr, ~q.kr) + \cf4 RLPF\cf3 .ar(~delayedInput.ar, ~freq2.kr, ~q.kr) \};\
+~p3 = \{ \cf4 RHPF\cf3 .ar(~p2.ar, ~freq3.kr, ~q.kr) + \cf4 RLPF\cf3 .ar(~delayedInput.ar, ~freq3.kr, ~q.kr) \};\
+\
+~p1Vol = 0.3;\
+~p2Vol = 0.3;\
+~p3Vol = 0.3;\
+\
+~pmix = \{ (~p1.ar * ~p1Vol.kr) + (~p2.ar * ~p2Vol.kr) + (~p3.ar * ~p3Vol.kr) \};\
+\
+~freqf = 3000;\
+~freqb = 7000;\
+~qf = 0.5;\
+~fbkf = 0.5;\
+~fbk = 0.5;\
+\
+~nl1 = \{ \cf4 RLPF\cf3 .ar(~pmix.ar, ~freqf.kr, ~qf.kr) \};\
+~nl2 = \{ (~nl1.ar * \cf4 LPF\cf3 .ar(~nl1.ar, ~freqb.kr, ~fbkf.kr)).distort \};\
+~nl3 = \{ ~nl2.ar + (~pmix.ar * ~fbk.kr).distort  \};\
+~nl = \{ \cf4 CombN\cf3 .ar(~nl3.ar, 0.1, [0.1, 0.1].rand, [3, 3].rand2, 1, ~nl3.ar) \};\
+\
+~compOut = \{ \cf4 Compander\cf3 .ar(~nl.ar.distort, ~nl.ar, 0.4, 1, 0.01, 0.01) \};\
+\
+~freqm = 1000;\
+~qm = 0.5;\
+~filterdOut = \{ \cf4 RLPF\cf3 .ar(~compOut.ar, ~freqm.kr, ~qm.kr) + \cf4 RHPF\cf3 .ar(~compOut.ar, ~freqm.kr, ~qm.kr) \};\
+~delayedOut0 = \{ \cf4 DelayN\cf3 .ar(~filterdOut.ar, 0.2, [rrand(0.1, 0.2), rrand(0.1, 0.2)]) \};\
+~delayedOut = \{ \cf4 DelayN\cf3 .ar(~delayedOut0.ar, 5.0, [rrand(4.0, 5.0), rrand(4.0, 5.0)]) \};\
+~limitedOut = \{ \cf4 Limiter\cf3 .ar(~delayedOut.ar, 0.5, 0.1) \};\
+)\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs36 \cf3 ~out.play;\
+~out.scope;\
+~out = ~limitedOut;\
+~out = ~limitedOut * [1.0, -1.0];\
+~out = ~limitedOut * [-1.0, -1.0];\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs24 \cf3 \
+~delayedInput = \{ \cf4 AllpassN\cf3 .ar(~in.ar, 0.1, [0.1, 0.1].rand, [3, 3].rand2) \};\
+\
+~limitedOut = \{ \cf4 Normalizer\cf3 .ar(~delayedOut.ar, 0.5, 0.1) \};\
+\
+~out.add(\{ \cf4 Mix\cf3 .new(\cf4 Pan2\cf3 .ar(~limitedOut.ar, \cf4 SinOsc\cf3 .ar([rrand(800, 1000), rrand(800, 1000)]), 0.5)) \});\
+~out.add(\{ \cf4 Mix\cf3 .new(\cf4 Pan2\cf3 .ar(~limitedOut.ar, \cf4 SinOsc\cf3 .ar([rrand(4000, 6000), rrand(4000, 6000)]), 0.5)) \});\
+~out.add(\{ \cf4 Mix\cf3 .new(\cf4 Pan2\cf3 .ar(~limitedOut.ar, \cf4 SinOsc\cf3 .ar([rrand(8000, 10000), rrand(8000, 10000)]), 0.5)) \});\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs36 \cf3 (\
+~freq1 = \{ \cf4 LFNoise1\cf3 .kr(20.rand, 5000, 5000) \};\
+~freq2 = \{ \cf4 LFNoise1\cf3 .kr(20.rand, 5000, 5000) \};\
+~freq3 = \{ \cf4 LFNoise1\cf3 .kr(20.rand, 5000, 5000) \};\
+)\
+\
+(\
+~pmix = \{ (~p1.ar * ~p1Vol.kr * \cf4 LFNoise1\cf3 .kr(10.rand, 1, 1)) \
+	+ (~p2.ar * ~p2Vol.kr * \cf4 LFNoise1\cf3 .kr(10.rand, 1, 1)) \
+	+ (~p3.ar * ~p3Vol.kr * \cf4 LFNoise1\cf3 .kr(10.rand, 1, 1)) \};\
+)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs24 \cf3 \
+\cf2 // live GUI\cf3 \
+\cf2 //\cf3 \
+\cf2 // make a GUI window\cf3 \
+(\
+g = \cf4 SCWindow\cf3 (\cf5 "loop control panel"\cf3 , \cf4 Rect\cf3 (20, 380, 440, 470));\
+g.alpha = 0.7;\
+g.front;\
+g.view.decorator = \cf4 FlowLayout\cf3 (g.view.bounds);\
+)\
+\cf2 // make control sliders\cf3 \
+(\
+\cf4 var\cf3  incnt, outcnt, qcnt, f1cnt, f2cnt, f3cnt, p1vcnt, p2vcnt, p3vcnt, ffcnt, fbcnt, qfcnt, fbkfcnt, fbkcnt, fmcnt, qmcnt;\
+incnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "in"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~in.vol = ez.value; \}, 0.5);\
+outcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "out"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~out.vol = ez.value; \}, 0.5);\
+qcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "q"\cf3 , \cf4 ControlSpec\cf3 (0, 2, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~q = ez.value; \}, 0.5);\
+f1cnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "freq1"\cf3 , \cf4 ControlSpec\cf3 (20, 10000, \cf6 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~freq1 = ez.value; \}, 5000);\
+f2cnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "freq2"\cf3 , \cf4 ControlSpec\cf3 (20, 10000, \cf6 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~freq2 = ez.value; \}, 500);\
+f3cnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "freq3"\cf3 , \cf4 ControlSpec\cf3 (20, 10000, \cf6 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~freq3 = ez.value; \}, 50);\
+p1vcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "vol1"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~p1Vol = ez.value; \}, 0.3);\
+p2vcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "vol2"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~p2Vol = ez.value; \}, 0.3);\
+p3vcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "vol3"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~p3Vol = ez.value; \}, 0.3);\
+ffcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "freqf"\cf3 , \cf4 ControlSpec\cf3 (20, 10000, \cf6 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~freqf = ez.value; \}, 3000);\
+fbcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "freqb"\cf3 , \cf4 ControlSpec\cf3 (20, 10000, \cf6 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~freqb = ez.value; \}, 7000);\
+qfcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "qf"\cf3 , \cf4 ControlSpec\cf3 (0, 2, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~qf = ez.value; \}, 0.5);\
+fbkfcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "feedbackf"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~fbkf = ez.value; \}, 0.5);\
+fbkcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "feedback"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~fbk = ez.value; \}, 0.5);\
+fmcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "freqm"\cf3 , \cf4 ControlSpec\cf3 (20, 10000, \cf6 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~freqm = ez.value; \}, 1000);\
+qmcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "qm"\cf3 , \cf4 ControlSpec\cf3 (0, 2, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~qm = ez.value; \}, 0.5);\
+)\
+\
+\
+\cf2 // recording\cf3 \
+r = p.record(\cf6 \\out\cf3 , \cf5 "liveDrone.aiff"\cf3 );\
+r.unpause;\
+r.pause;\
+r.close;\
+\
+\
+\cf2 // task\cf3 \
+\
+x = \cf4 TaskProxy\cf3 .basicNew;\
+\
+(\
+x.source = \{\
+	loop(\{\
+		~dss.rebuild;\
+		rrand(15, 25).wait;\
+	\});\
+\};\
+)\
+\
+x.play(\cf4 AppClock\cf3 );\
+\
+\
+\cf2 // dynamic stochastic synthesis by xenakis\cf3 \
+\
+(\
+~dss = \{ \
+	\cf4 arg\cf3  ampdist=1, durdist=1, adparam=1.0, ddparam=1.0, freq=440, \
+	ampscale=0.5, durscale=0.5, initCPs=12, knum=12,\
+	mul=0.1, add=0.0, pan=0.0;\
+	\cf4 Pan2\cf3 .ar(\
+		\cf4 Gendy3\cf3 .ar(	\
+			ampdist, durdist, adparam, ddparam, freq, \
+			ampscale, durscale, initCPs, knum, mul, add),\
+		pan\
+	)\
+\};\
+)\
+\
+~dss.play;\
+\
+~dss = \cf4 nil\cf3 ;\
+\
+~dss.xset(\cf6 \\ampdist\cf3 , 3);\
+~dss.xset(\cf6 \\durdist\cf3 , 5);\
+\
+~dss.xset(\cf6 \\ampdist\cf3 , 7.rand);\
+~dss.xset(\cf6 \\durdist\cf3 , 7.rand);\
+\
+~mx = \{ \cf4 MouseX\cf3 .kr(0, 7) \};\
+~my = \{ \cf4 MouseY\cf3 .kr(0, 7) \};\
+~dss.map(\cf6 \\ampdist\cf3 , ~mx);\
+~dss.map(\cf6 \\durdist\cf3 , ~my);\
+\
+~dss.xset(\cf6 \\adparam\cf3 , 0.5);\
+~dss.xset(\cf6 \\ddparam\cf3 , 0.7);\
+\
+~lfo = \{ \cf4 SinOsc\cf3 .kr(0.1, 0, 0.3, 0.7) \};\
+~lfo = \{ \cf4 SinOsc\cf3 .kr(0.1, 0, 0.49, 0.51) \};\
+~lfo = \{ \cf4 LFPulse\cf3 .kr(100, 0, 0.4, 1.0) \};\
+~lfo = \{ \cf4 LFPulse\cf3 .kr(\cf4 MouseX\cf3 .kr(0, 200), 0, 0.4, 1.0) \};\
+~lfo = \{ \cf4 LFPulse\cf3 .kr(\cf4 LFNoise0\cf3 .kr(19.0, 0.5, 0.6), 0, 0.4, 0.5) \};\
+~lfo = \{ \cf4 Gendy1\cf3 .kr(durscale:0.01, ampscale:0.01) \};\
+~lfo = \{ \cf4 Gendy1\cf3 .kr(5, 4, 0.3, 0.7, 0.1, \cf4 MouseY\cf3 .kr(0.1, 10), 1.0, 1.0, 5, 5, 500, 600) \};\
+~dss.map(\cf6 \\adparam\cf3 , ~lfo);\
+~lfo2 = \{ \cf4 SinOsc\cf3 .kr(0.05, 0, 0.49, 0.51) \};\
+~dss.map(\cf6 \\ddparam\cf3 , ~lfo2);\
+\
+~dss.xset(\cf6 \\freq\cf3 , 400+100.rand);\
+~dss.xset(\cf6 \\freq\cf3 , 40+100.rand);\
+\
+~mx = \{ \cf4 MouseX\cf3 .kr(220, 880, \cf6 \\exponential\cf3 ) \};\
+~dss.map(\cf6 \\freq\cf3 , ~mx);\
+\
+\
+~dss.set(\cf6 \\ampscale\cf3 , 0.01);\
+~dss.set(\cf6 \\ampscale\cf3 , 0.5);\
+~dss.set(\cf6 \\durscale\cf3 , 0.002);\
+\
+\
+~dss.xset(\cf6 \\knum\cf3 , 1);\
+~dss.xset(\cf6 \\knum\cf3 , 2);\
+~dss.xset(\cf6 \\knum\cf3 , 5);\
+~dss.xset(\cf6 \\knum\cf3 , 12);\
+\
+~my = \{ \cf4 MouseY\cf3 .kr(2, 13) \};\
+~dss.map(\cf6 \\knum\cf3 , ~my);\
+\
+~dss.xset(\cf6 \\mul\cf3 , 0.2);\
+\
+~lfop = \{ \cf4 LFNoise1\cf3 .kr(1.0, 1, 0) \};\
+~dss.xmap(\cf6 \\pan\cf3 , ~lfop);\
+~dss.xset(\cf6 \\pan\cf3 , 0);\
+\
+\
+(\
+~dss = \{ \
+	\cf4 arg\cf3  ampdist=1, durdist=1, adparam=1.0, ddparam=1.0, freq=440, \
+	ampscale=0.5, durscale=0.5, initCPs=12, knum=12, mul=0.5, add=0.0,\
+	cutoff=1000, rq= 0.9, pan=0.0;\
+	\cf4 Pan2\cf3 .ar(\
+		\cf4 Resonz\cf3 .ar(\
+			\cf4 Gendy3\cf3 .ar(	\
+				ampdist, durdist, adparam, ddparam, freq, \
+				ampscale, durscale, initCPs, knum, mul, add),\
+			cutoff,\
+			rq\
+			),\
+		pan\
+		)\
+	\};\
+)\
+\
+~mx = \{ \cf4 MouseX\cf3 .kr(10, 10000, \cf6 \\exponential\cf3 ) \};\
+~mx = \{ \cf4 SinOsc\cf3 .kr(0.3, 0, 100, 4000) \};\
+~dss.map(\cf6 \\cutoff\cf3 , ~mx);\
+\
+~dss.set(\cf6 \\rq\cf3 , 2);\
+\
+(\
+~dss = \{ \
+	\cf4 arg\cf3  ampdist=1, durdist=1, adparam=1.0, ddparam=1.0, freq=440, \
+	ampscale=0.5, durscale=0.5, initCPs=12, knum=12, mul=0.5, add=0.0,\
+	cutoff=1000, rq= 0.9, delay=0.01, decay=0.2, pan=0.0;\
+	\cf4 Pan2\cf3 .ar(\
+		\cf4 CombN\cf3 .ar(\
+			\cf4 Resonz\cf3 .ar(\
+				\cf4 Gendy3\cf3 .ar(	\
+					ampdist, durdist, adparam, ddparam, freq, \
+					ampscale, durscale, initCPs, knum, mul, add),\
+				cutoff,\
+				rq\
+				),\
+			0.01,\
+			delay,\
+			decay),		\
+		pan\
+		)\
+	\};\
+)\
+\
+~dss.set(\cf6 \\delay\cf3 , 0.001);\
+~dss.set(\cf6 \\decay\cf3 , -2);\
+\
+\
+(\
+~dss = \{ \
+	\cf4 Pan2\cf3 .ar(\
+		\cf4 Mix\cf3 .new(\
+			\cf4 Gendy3\cf3 .ar(	\
+				ampdist:3,\
+				durdist:5,\
+				adparam:\cf4 SinOsc\cf3 .kr(0.1, 0, 0.1, 0.9),\
+				ddparam:0.5,\
+				freq:[1, 1.2, 1.3, 1.76, 2.3] * \cf4 MouseX\cf3 .kr(3, 17, \cf6 \\exponential\cf3 ),\
+				ampscale:0.02,\
+				durscale:0.0012,\
+				initCPs:12,\
+				knum:5,\
+				mul:0.5,\
+				add:0.0\
+			)\
+		)\
+	)\};\
+)\
+\
+(\
+~dss = \{\
+	\cf4 Pan2\cf3 .ar(\
+		\cf4 RLPF\cf3 .ar(\
+			\cf4 Gendy3\cf3 .ar(\
+				ampdist:7.rand,\
+				durdist:7.rand,\
+				adparam:1.0,\
+				ddparam:1.0,\
+				freq:\cf4 MouseX\cf3 .kr(8000, 10000, \cf6 \\exponential\cf3 ),\
+				ampscale:\cf4 MouseY\cf3 .kr(0.0, 1.0),\
+				durscale:0.0,\
+				initCPs:12,\
+				knum:12,\
+				mul:0.2,\
+				add:0.0\
+			),\
+			\cf4 MouseX\cf3 .kr(8000, 10000, \cf6 \\exponential\cf3 ),\
+			0.5,\
+			0.5),\
+		0.0)\
+	\};\
+)\
+\
+\
+(\
+~dss = \{\
+	\cf4 Pan2\cf3 .ar(\
+		\cf4 Gendy3\cf3 .ar(	\
+			ampdist:1,\
+			durdist:1,\
+			adparam:1.0,\
+			ddparam:1.0,\
+			freq:440,\
+			ampscale:0.5,\
+			durscale:0.5,\
+			initCPs:12,\
+			knum:12,\
+			mul:0.2,\
+			add:0.0\
+		))\
+	\};\
+)\
+\
+\
+\
+\
+\cf2 // make a dss GUI window\cf3 \
+(\
+u = \cf4 SCWindow\cf3 (\cf5 "dss control panel"\cf3 , \cf4 Rect\cf3 (20, 380, 440, 300));\
+u.alpha = 0.7;\
+u.front;\
+u.view.decorator = \cf4 FlowLayout\cf3 (u.view.bounds);\
+)\
+\cf2 // make dss control sliders\cf3 \
+(\
+\cf4 var\cf3  ampdist, durdist, adparam, ddparam, freq, ampscale, durscale, initCPs, knum, mul, pan;\
+ampdist = \cf4 EZSlider\cf3 (u, 400 @ 24, \cf5 "ampdist"\cf3 , \cf4 ControlSpec\cf3 (0, 6, \cf6 \\lin\cf3 , 1), \{\cf4 |ez|\cf3  ~dss.set(\cf6 \\ampdist\cf3 , ez.value); \}, 1);\
+durdist = \cf4 EZSlider\cf3 (u, 400 @ 24, \cf5 "durdist"\cf3 , \cf4 ControlSpec\cf3 (0, 6, \cf6 \\lin\cf3 , 1), \{\cf4 |ez|\cf3  ~dss.set(\cf6 \\durdist\cf3 , ez.value); \}, 1);\
+adparam = \cf4 EZSlider\cf3 (u, 400 @ 24, \cf5 "adparam"\cf3 , \cf4 ControlSpec\cf3 (0.0001, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~dss.set(\cf6 \\adparam\cf3 , ez.value); \}, 1.0);\
+ddparam = \cf4 EZSlider\cf3 (u, 400 @ 24, \cf5 "ddparam"\cf3 , \cf4 ControlSpec\cf3 (0.0001, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~dss.set(\cf6 \\ddparam\cf3 , ez.value); \}, 1.0);\
+freq = \cf4 EZSlider\cf3 (u, 400 @ 24, \cf5 "freq"\cf3 , \cf4 ControlSpec\cf3 (10, 10000, \cf6 \\exponential\cf3 , 0), \{\cf4 |ez|\cf3  ~dss.set(\cf6 \\freq\cf3 , ez.value); \}, 440);\
+ampscale = \cf4 EZSlider\cf3 (u, 400 @ 24, \cf5 "ampscale"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~dss.set(\cf6 \\ampscale\cf3 , ez.value); \}, 0.5);\
+durscale = \cf4 EZSlider\cf3 (u, 400 @ 24, \cf5 "durscale"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~dss.set(\cf6 \\durscale\cf3 , ez.value); \}, 0.5);\
+knum = \cf4 EZSlider\cf3 (u, 400 @ 24, \cf5 "knum"\cf3 , \cf4 ControlSpec\cf3 (1, 12, \cf6 \\lin\cf3 , 1), \{\cf4 |ez|\cf3  ~dss.set(\cf6 \\knum\cf3 , ez.value); \}, 12);\
+mul = \cf4 EZSlider\cf3 (u, 400 @ 24, \cf5 "mul"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~dss.set(\cf6 \\mul\cf3 , ez.value); \}, 0.5);\
+pan = \cf4 EZSlider\cf3 (u, 400 @ 24, \cf5 "pan"\cf3 , \cf4 ControlSpec\cf3 (-1, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~dss.set(\cf6 \\pan\cf3 , ez.value); \}, 0.0);\
+)\
+\
+\cf2 // live granular composition\cf3 \
+(\
+\cf4 SynthDescLib\cf3 .read;\
+\
+\cf4 SynthDef\cf3 (\cf5 "clickGrain"\cf3 , \
+	\{ \cf4 arg\cf3  out=0, freq=1, sustain=0.001, amp=0.5, pan=0;\
+		\cf4 var\cf3  window;\
+		window = \cf4 Env\cf3 .linen(0, sustain, 0, amp);\
+		\cf4 Out\cf3 .ar(out, \
+			\cf4 Pan2\cf3 .ar(\
+				\cf4 Impulse\cf3 .ar(freq),\
+				pan\
+			) * \cf4 EnvGen\cf3 .ar(window, doneAction:2)\
+		)\
+	\}\
+).store;\
+\
+\cf4 SynthDef\cf3 (\cf5 "sineGrain"\cf3 , \
+	\{ \cf4 arg\cf3  out=0, freq=800, sustain=0.001, amp=0.5, pan=0;\
+		\cf4 var\cf3  window;\
+		window = \cf4 Env\cf3 .sine(sustain, amp);\
+		\cf4 Out\cf3 .ar(out, \
+			\cf4 Pan2\cf3 .ar(\
+				\cf4 SinOsc\cf3 .ar(freq) * \cf4 EnvGen\cf3 .ar(window, 1.0, doneAction:2),\
+				pan\
+			)\
+		)\
+	\}\
+).store;\
+\
+\cf4 SynthDef\cf3 (\cf5 "noiseGrain"\cf3 , \
+	\{ \cf4 arg\cf3  out=0, sustain=0.001, amp=0.5, pan=0;\
+		\cf4 var\cf3  window;\
+		window = \cf4 Env\cf3 .triangle(sustain, amp);\
+		\cf4 Out\cf3 .ar(out, \
+			\cf4 Pan2\cf3 .ar(\
+				\cf4 WhiteNoise\cf3 .ar * \cf4 EnvGen\cf3 .ar(window, doneAction:2),\
+				pan\
+			)\
+		)\
+	\}\
+).store;\
+)\
+\
+\cf2 // synthdef browser
+\f1 \cf3 \
+
+\f0 \cf4 SynthDescLib\cf3 .global.browse;\
+\
+\cf2 // monitor
+\f1 \cf3 \
+
+\f0 ~out2.play;\
+~out2.scope;\
+~out2.fadeTime = 0;\
+\
+\cf2 // pattern\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f1 \cf3 \
+(\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0 \cf3 y = \cf4 PbindProxy\cf3 .new;\
+a = \cf4 PatternProxy\cf3 .basicNew;\
+b = \cf4 PatternProxy\cf3 .basicNew;\
+c = \cf4 PatternProxy\cf3 .basicNew;\
+d = \cf4 PatternProxy\cf3 .basicNew;\
+e = \cf4 PatternProxy\cf3 .basicNew;\
+)\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs36 \cf3 a.source = \cf4 Pseq\cf3 ((50, 60..150).scramble, \cf4 inf\cf3 );\
+a.source = \cf4 Pseq\cf3 ((100, 110..200).scramble, \cf4 inf\cf3 );\
+a.source = \cf4 Prand\cf3 ([50, 60, 70, 13000].scramble, \cf4 inf\cf3 );\
+\
+b.source = \cf4 Pseq\cf3 ([0.01, 0.02, 0.03, 0.1].scramble, \cf4 inf\cf3 );\
+b.source = \cf4 Pseq\cf3 ([0.01, 0.02, 0.1].scramble, \cf4 inf\cf3 );\
+\
+c.source = \cf4 Pseq\cf3 ([0.01, 0.02, 0.005, 0.001], \cf4 inf\cf3 );\
+c.source = \cf4 Prand\cf3 ([0.02, 0.05, 0.01], \cf4 inf\cf3 );\
+\
+d.source = \cf4 Pseq\cf3 ([0.1, 0.2, 0.1, 0.4], \cf4 inf\cf3 );\
+\
+e.source = \cf4 Prand\cf3 ([-1, 1], \cf4 inf\cf3 );\
+e.source = \cf4 Prand\cf3 ([-1, 0, 1], \cf4 inf\cf3 );\
+e.source = \cf4 Pfunc\cf3 (\{1.0.rand2\});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs24 \cf3 \
+\
+(\
+y.set(\
+	\cf6 \\instrument\cf3 , \cf6 \\sineGrain\cf3 ,\
+	\cf6 \\freq\cf3 , a,\
+	\cf6 \\dur\cf3 , b,\
+	\cf6 \\sustain\cf3 , c,\
+	\cf6 \\amp\cf3 , d,\
+	\cf6 \\pan\cf3 , e\
+	);\
+)\
+\
+~out2 = y;\
+\
+y.set(\cf6 \\instrument\cf3 , \cf6 \\clickGrain\cf3 );\
+y.set(\cf6 \\instrument\cf3 , \cf6 \\sineGrain\cf3 );\
+y.set(\cf6 \\instrument\cf3 , \cf6 \\noiseGrain\cf3 );\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs36 \cf3 y.set(\cf6 \\instrument\cf3 , \cf4 Pwrand\cf3 ([\cf6 \\clickGrain\cf3 , \cf6 \\sineGrain\cf3 , \cf6 \\noiseGrain\cf3 ], \
+[1, 19, 1].normalizeSum, \cf4 inf\cf3 ));\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs24 \cf3 \
+~out2 = \cf4 nil\cf3 ;\
+~out2.stop;\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+}

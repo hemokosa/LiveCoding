@@ -1,0 +1,754 @@
+{\rtf1\mac\ansicpg10000\cocoartf102
+{\fonttbl\f0\fnil\fcharset77 Monaco;\f1\fnil\fcharset78 Osaka;}
+{\colortbl;\red255\green255\blue255;\red191\green0\blue0;\red0\green0\blue0;\red0\green0\blue191;
+\red96\green96\blue96;\red0\green115\blue0;\red191\green0\blue0;\red0\green0\blue191;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0\fs24 \cf2 //\cf3 \
+\cf2 // SC3 Live Coding Performance Template   (c) akihiro kubota, 2005\cf3 \
+\cf2 //\cf3 \
+\
+\cf2 // boot internal server and create a new proxyspace\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs36 \cf3 (\
+\cf4 Server\cf3 .default = \cf4 Server\cf3 .internal;\
+\cf4 Server\cf3 .default.options.numWireBufs = 128;\
+\cf4 Server\cf3 .default.options.memSize = 32768;\
+s = \cf4 Server\cf3 .default;\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural
+\cf3 if(not(s.serverRunning), \{s.boot\});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 p = \cf4 ProxySpace\cf3 .push(s);\
+p.fadeTime = 10;\
+)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs24 \cf2 // the end\cf3 \
+p.end(3);\
+p.clear.pop;\
+p.free;\
+\
+\cf4 UGen\cf3 .browse
+\f1 \'81\'47
+\f0 \
+currentEnvironment.postln;\
+\
+\cf2 // freqency analyzer\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs36 \cf4 FreqScope\cf3 .new(200, 0);\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs24 \cf3 \
+(\
+w = \cf4 SCWindow\cf3 (\cf5 "Frequency Domain"\cf3 , \cf4 Rect\cf3 (0, 0, 511, 300));\
+f = \cf4 SCFreqScope\cf3 (w, w.view.bounds);\
+f.active_(\cf4 true\cf3 );\
+w.onClose_(\{ f.kill \});\
+w.front;\
+)\
+\
+f.freqMode_(0);\
+f.freqMode_(1);\
+f.inBus_(0);\
+f.dbRange_(100);\
+f.active_(\cf4 false\cf3 );\
+f.active_(\cf4 true\cf3 );\
+\
+\
+\cf2 // define and monitor proxies\cf3 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs36 \cf3 ~input.ar(2);\
+~input.play;\
+~input.vol = 0.5;\
+\
+~output.ar(2);\
+~output.play;\
+~output.vol = 0.5;\
+~output.scope;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\fs24 \cf3 \
+\cf2 // melodies\cf3 \
+\
+\cf2 // dots\cf3 \
+\
+~dots.ar(2);\
+~dots = \{ \cf4 Impulse\cf3 .ar([20, 20], [0.0, 0.5], 0.5, 0) \};\
+~dots = \{ \cf4 Decay\cf3 .ar(\cf4 Impulse\cf3 .ar([20, 20], [0.0, 0.5], 0.1, 0), 0.1) \};\
+~dots = \{ \cf4 Blip\cf3 .ar([rrand(32, 15), rrand(32, 15)], 100, 0.5) \};\
+~input = ~dots;\
+\
+\cf2 // harmony (lines)\cf3 \
+~lines.ar(2);\
+~lines.vol = 0.5;\
+~lines.fadeTime = 0.1;\
+~lines.scope;\
+~line.end;\
+\
+(\
+~lines = \{\
+	\cf4 arg\cf3  dur = 60;\
+	\cf4 var\cf3  farray1, farray2, aarray1, aarray2, parray1, parray2;\
+	farray1 = \cf4 Control\cf3 .names(\cf6 \\farray1\cf3 ).kr(\cf4 Array\cf3 .fill(36, 0));\
+	farray2 = \cf4 Control\cf3 .names(\cf6 \\farray2\cf3 ).kr(\cf4 Array\cf3 .fill(36, 0));\
+	aarray1 = \cf4 Control\cf3 .names(\cf6 \\aarray1\cf3 ).kr(\cf4 Array\cf3 .fill(36, 0));\
+	aarray2 = \cf4 Control\cf3 .names(\cf6 \\aarray2\cf3 ).kr(\cf4 Array\cf3 .fill(36, 0));\
+	parray1 = \cf4 Control\cf3 .names(\cf6 \\parray1\cf3 ).kr(\cf4 Array\cf3 .fill(36, 0));\
+	parray2 = \cf4 Control\cf3 .names(\cf6 \\parray2\cf3 ).kr(\cf4 Array\cf3 .fill(36, 0));\
+	\cf4 Mix\cf3 .new(\
+		\cf4 Pan2\cf3 .ar(\
+			\cf4 SinOsc\cf3 .ar(\
+				\cf4 Line\cf3 .kr(farray1, farray2, dur),\
+				0.0,\
+				\cf4 Line\cf3 .kr(aarray1, aarray2, dur),\
+				0.0),\
+			\cf4 Line\cf3 .kr(parray1, parray2, dur), 1.0))\};\
+)\
+\
+(\
+\cf4 var\cf3  fmw, amw;\
+fmw = \cf4 SCWindow\cf3 (\cf5 "frequency matrix"\cf3 , \cf4 Rect\cf3 (128, 164, 240, 480));\
+amw = \cf4 SCWindow\cf3 (\cf5 "amplitude matrix"\cf3 , \cf4 Rect\cf3 (138, 174, 240, 480));\
+fmw.front;\
+amw.front;\
+~h = \cf4 Routine\cf3 \{\
+		\cf4 var\cf3  fbase, dt, t = 0;\
+		\cf4 var\cf3  fseries, fprime, fgeom, fchord, fchoose, fmatrix1, fmatrix2;\
+		\cf4 var\cf3  aseries, adist, amatrix1, amatrix2;\
+		\
+		loop(\{\
+			fbase = (1000.0 + 50.0.sum3rand).postln;\
+			fseries = \cf4 Array\cf3 .series(6, 1, rrand(1.0, 2.0));\
+			fprime = (0..5).nthPrime;\
+			fgeom = \cf4 Array\cf3 .geom(6, 1, [2.sqrt.sqrt, 1.2, 1.25, 2.sqrt].choose);\
+			fchord = [[1, 6/5, 3/2, 15/8, 9/4, 8/3], [1, 5/4, 3/2, 16/9, 9/4, 8.sqrt]];\
+			fchoose = [fseries, fprime].choose.postln;\
+			fmatrix1 = fchord.choose * .t fchoose.reciprocal;\
+			fmatrix2 = fmatrix1;\
+			\{\
+				fmw.drawHook = \{ \cf4 Pen\cf3 .addField((fmatrix1 ++ fmatrix2), fmw.bounds) \};\
+				fmw.refresh;\
+			\}.defer;\
+			aseries = \cf4 Array\cf3 .series(6, 1, 1);\
+			adist = \cf4 Array\cf3 .fill2D(6, 6, \{\cf4 |i, j|\cf3  abs(i-j)\}).flat;\
+			amatrix1 = \cf4 Array\cf3 .rand(6, 0.7, 1.0) * .t aseries;\
+			amatrix2 = \cf4 Array\cf3 .rand(6, 0.7, 1.0) * .t aseries.reciprocal;\
+			\{\
+				amw.drawHook = \{ \cf4 Pen\cf3 .addField((amatrix1 ++ amatrix2), amw.bounds) \};\
+				amw.refresh;\
+			\}.defer;\
+			dt = rrand(30.0, 40.0).postln;\
+			~lines.fadeTime = dt;\
+			~lines.set(\cf6 \\dur\cf3 , dt);\
+			~lines.setn(\
+				\cf6 \\farray1\cf3 , (fmatrix1.flat * fbase) + \cf4 Array\cf3 .fill(36, t).sum3rand,\
+				\cf6 \\farray2\cf3 , (fmatrix2.flat * fbase) + \cf4 Array\cf3 .fill(36, t).sum3rand,				\cf6 \\aarray1\cf3 , amatrix1.flat.normalizeSum,\
+				\cf6 \\aarray2\cf3 , amatrix2.flat.normalizeSum,				\cf6 \\parray1\cf3 , \cf4 Array\cf3 .fill(36, 1.0).rand2,				\cf6 \\parray2\cf3 , \cf4 Array\cf3 .fill(36, 1.0).rand2\
+			).rebuild;\
+			t = (t + (dt/10.0)).postln;\
+			dt.wait;\
+		\});\
+\};\
+)\
+\
+(\
+\cf4 var\cf3  fmw, amw;\
+fmw = \cf4 SCWindow\cf3 (\cf5 "frequency matrix"\cf3 , \cf4 Rect\cf3 (128, 164, 360, 320));\
+amw = \cf4 SCWindow\cf3 (\cf5 "amplitude matrix"\cf3 , \cf4 Rect\cf3 (138, 174, 360, 320));\
+fmw.front;\
+amw.front;\
+~h = \cf4 Routine\cf3 \{\
+		\cf4 var\cf3  fbase, dt, t = 0;\
+		\cf4 var\cf3  fchord, fseries, fprime, fchoose, fmatrix1, fmatrix2;\
+		\cf4 var\cf3  achord, atone, amatrix1, amatrix2;\
+		loop(\{\
+			fbase = (220.0 + 20.0.sum3rand).postln;\
+			fchord = [[6/5, 3/2, 15/8, 9/4], [5/4, 3/2, 16/9, 9/4]];\
+			fseries = (5..2).reciprocal ++ (1..5);\
+			fprime = (3..0).nthPrime.reciprocal ++ [1] ++ (0..3).nthPrime;\
+			fchoose = [fseries, fprime].choose.postln;\
+			fmatrix1 = fchord.choose * .t fchoose;\
+			fmatrix2 = fmatrix1;\
+			\{\
+				fmw.drawHook = \{ \cf4 Pen\cf3 .addField((fmatrix1 ++ fmatrix2), fmw.bounds) \};\
+				fmw.refresh;\
+			\}.defer;\
+			achord = \cf4 Array\cf3 .rand(4, 0.7, 1.0);\
+			atone = (5..2) ++ (1..5);\
+			amatrix1 = \cf4 Array\cf3 .rand(4, 0.7, 1.0) * .t atone.reciprocal;\
+			amatrix2 = \cf4 Array\cf3 .rand(4, 0.7, 1.0) * .t atone;\
+			\{\
+				amw.drawHook = \{ \cf4 Pen\cf3 .addField((amatrix1 ++ amatrix2), amw.bounds) \};\
+				amw.refresh;\
+			\}.defer;\
+			dt = rrand(30.0, 40.0).postln;\
+			~lines.fadeTime = dt;\
+			~lines.set(\cf6 \\dur\cf3 , dt);\
+			~lines.setn(\
+				\cf6 \\farray1\cf3 , (fmatrix1.flat * fbase) + \cf4 Array\cf3 .fill(36, t).sum3rand,\
+				\cf6 \\farray2\cf3 , (fmatrix2.flat * fbase) + \cf4 Array\cf3 .fill(36, t).sum3rand,				\cf6 \\aarray1\cf3 , amatrix1.flat.normalizeSum,\
+				\cf6 \\aarray2\cf3 , amatrix2.flat.normalizeSum,				\cf6 \\parray1\cf3 , \cf4 Array\cf3 .fill(36, 1.0).rand2,				\cf6 \\parray2\cf3 , \cf4 Array\cf3 .fill(36, 1.0).rand2\
+			).rebuild;\
+			t = (t + (dt/10.0)).postln;\
+			dt.wait;\
+		\});\
+\};\
+)\
+\
+~input = ~dots + ~lines;\
+\
+\cf2 // line\cf3 \
+~line.ar(2);\
+~line = \{ \cf4 SinOsc\cf3 .ar([60, 70], 0.0, 0.2, 0) \};\
+~line = \{ \cf4 SinOsc\cf3 .ar([9020, 9000], 0.0, 0.2, 0) \};\
+~line = \{ \cf4 SinOsc\cf3 .ar([70, 60], 0.0, 0.5, 0) + \cf4 SinOsc\cf3 .ar([12000, 12030], 0.0, 0.2, 0) \};\
+\
+\cf2 // plane\cf3 \
+~plane.ar(2);\
+~plane = \{ \cf4 BrownNoise\cf3 .ar([0.1, 0.1]) \};\
+~plane = \{ \cf4 ClipNoise\cf3 .ar([0.1, 0.1]) \};\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f1 \cf2 //\cf3 \
+\cf2 //
+\f0 \cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // microphone\cf3 \
+~micin.ar(2);\
+~micin = \{ \cf4 AudioIn\cf3 .ar([1, 2]) * 0.1 \};\
+~micin = \{ \cf4 Normalizer\cf3 .ar(\cf4 AudioIn\cf3 .ar([1, 2]), 0.1, 0.01) \};\
+~micin = \{ \cf4 Normalizer\cf3 .ar(\cf4 AudioIn\cf3 .ar([1, 2]) * \cf4 FSinOsc\cf3 .ar(rrand(300.0, 500.0)), 0.2, 0.01) \};\
+~micin = \{ \cf4 Normalizer\cf3 .ar(\cf4 PitchShift\cf3 .ar(\cf4 AudioIn\cf3 .ar([1, 2]), 0.5, 0.9, 0.1, 0.01), 0.1, 0.01) \};\
+\
+~input = ~dots + ~line + ~lines + ~plane + ~micin;\
+\
+\cf2 // feedback\cf3 \
+~feedback = \{ \cf4 InFeedback\cf3 .ar([1, 0], 2) * 0.5 \};\
+~feedback = \{ \cf4 InFeedback\cf3 .ar([1, 0], 2) * [\cf4 LFNoise1\cf3 .kr(0.1.rand), \cf4 LFNoise1\cf3 .kr(0.1.rand)] \};\
+~feedback = \{ \cf4 DelayN\cf3 .ar((\cf4 InFeedback\cf3 .ar([1, 0], 2) * 0.5), 1.0, [rrand(0.5, 1.0), rrand(0.5, 1.0)]) \};\
+~feedback = \{ \cf4 PitchShift\cf3 .ar(\cf4 InFeedback\cf3 .ar([1, 0], 2), 1.5, 0.7, 0.1, 0.01, 0.5)\};\
+\
+~input = ~dots + ~line + ~lines + ~plane + ~micin + ~feedback;\
+\
+\
+\
+\
+\cf2 // pitch follower (auto line)\cf3 \
+~source.ar(2);\
+~source = ~feedback;\
+~melodies = ~dots + ~line + ~lines + ~plane;\
+~source = ~melodies;\
+~sfreq = \{ \cf4 Amplitude\cf3 .kr(\cf4 ZeroCrossing\cf3 .ar(~source.ar), 0.05, 0.05) \};\
+~sfreq = \{ \cf4 Pitch\cf3 .kr(~source.ar, ampThreshold: 0.02, median: 7) \};\
+~samp = \{ \cf4 Amplitude\cf3 .kr(~source.ar, 0.05, 0.05, 0.5) \};\
+~follow = \{ \cf4 SinOsc\cf3 .ar(~sfreq.kr * 1.01, 0, ~samp.kr, 0) \};\
+\
+~input = ~melodies + ~micin + ~feedback + ~follow;\
+\
+\cf2 // bbcut (break beats)\cf3 \
+b = \cf4 Buffer\cf3 .alloc(\cf4 BBCut\cf3 .server, 44100*4, 1);\
+b.bufnum;\
+f = \cf4 SF3\cf3 .newFromBuf(b, 4, 44100);\
+~rec = \{ \cf4 RecordBuf\cf3 .ar(\cf4 AudioIn\cf3 .ar(1), b.bufnum, 0, 0.5, 0.5, 1, 1) \};\
+~rec = \{ \cf4 RecordBuf\cf3 .ar((\cf4 AudioIn\cf3 .ar(1) + \cf4 SinOsc\cf3 .ar(100)), b.bufnum, 0, 0.5, 0.5, 1, 1) \};\
+~rec = \{ \cf4 RecordBuf\cf3 .ar(\cf4 Mix\cf3 (\cf4 InFeedback\cf3 .ar([0, 1], 2)), b.bufnum, 0, 0.5, 0.5, 1, 1) \};\
+~rec = \{ \cf4 RecordBuf\cf3 .ar(~melodies.ar, b.bufnum, 0, 0.5, 1.0, 1, 1) \};\
+~cut = \cf4 BBCut\cf3 (\cf4 BBCutSynthSF\cf3 (f, 0.4, panfunc:\{1.0.rand2\}), \cf4 BBCutProc11\cf3 .new).tempo_(1.2);\
+~cut = \cf4 BBCut\cf3 (\cf4 BBCutSynthSF\cf3 (f, 0.4, panfunc:\{1.0.rand2\}), \cf4 SQPusher1\cf3 .new(0.2)).tempo_(2.5);\
+~cut = \cf4 BBCut\cf3 (\cf4 BBCutSynthSF\cf3 (f, 0.4, panfunc:\{1.0.rand2\}), \cf4 RecursiveCutProc1\cf3 .new).tempo_(1.5);\
+~cut = \cf4 BBCut\cf3 ([\cf4 BBCutSynthSF\cf3 (f, 0.4, panfunc:\{1.0.rand2\}), \cf4 BBCSPost\cf3 .new], \cf4 BBCutProc11\cf3 .new).tempo_(1.2);\
+\
+~input = ~melodies + ~micin + ~feedback + ~follow + ~cut;\
+\
+\
+\
+\cf2 // nonlinear feedback loops\cf3 \
+(\
+~delayedInput = \{ \cf4 CombN\cf3 .ar(~input.ar, 0.1, [0.1, 0.1].rand, [3, 3].rand2) \};\
+\
+~q = 0.5;\
+\
+~freq1 = 5000;\
+~freq2 = 500;\
+~freq3 = 50;\
+\
+~p1 = \{ \cf4 RHPF\cf3 .ar(~delayedInput.ar, ~freq1.kr, ~q.kr) + \cf4 RLPF\cf3 .ar(~delayedInput.ar, ~freq1.kr, ~q.kr) \};\
+~p2 = \{ \cf4 RHPF\cf3 .ar(~p1.ar, ~freq2.kr, ~q.kr) + \cf4 RLPF\cf3 .ar(~delayedInput.ar, ~freq2.kr, ~q.kr) \};\
+~p3 = \{ \cf4 RHPF\cf3 .ar(~p2.ar, ~freq3.kr, ~q.kr) + \cf4 RLPF\cf3 .ar(~delayedInput.ar, ~freq3.kr, ~q.kr) \};\
+\
+~p1Vol = 0.3;\
+~p2Vol = 0.3;\
+~p3Vol = 0.3;\
+\
+~pmix = \{ (~p1.ar * ~p1Vol.kr) + (~p2.ar * ~p2Vol.kr) + (~p3.ar * ~p3Vol.kr) \};\
+\
+~freqf = 3000;\
+~freqb = 7000;\
+~qf = 0.5;\
+~fbkf = 0.5;\
+~fbk = 0.5;\
+\
+~nl1 = \{ \cf4 RLPF\cf3 .ar(~pmix.ar, ~freqf.kr, ~qf.kr) \};\
+~nl2 = \{ (~nl1.ar * \cf4 LPF\cf3 .ar(~nl1.ar, ~freqb.kr, ~fbkf.kr)).distort \};\
+~nl3 = \{ ~nl2.ar + (~pmix.ar * ~fbk.kr).distort  \};\
+~nl = \{ \cf4 CombN\cf3 .ar(~nl3.ar, 0.1, [0.1, 0.1].rand, [3, 3].rand2, 1, ~nl3.ar) \};\
+\
+~compOut = \{ \cf4 Compander\cf3 .ar(~nl.ar.distort, ~nl.ar, 0.4, 1, 0.01, 0.01) \};\
+\
+~freqm = 1000;\
+~qm = 0.5;\
+~filterdOut = \{ \cf4 RLPF\cf3 .ar(~compOut.ar, ~freqm.kr, ~qm.kr) + \cf4 RHPF\cf3 .ar(~compOut.ar, ~freqm.kr, ~qm.kr) \};\
+~delayedOut = \{ \cf4 DelayN\cf3 .ar(~filterdOut.ar, 5.0, [rrand(4.0, 5.0), rrand(4.0, 5.0)]) \};\
+~limitedOut = \{ \cf4 Limiter\cf3 .ar(~delayedOut.ar, 0.5, 0.1) \};\
+)\
+\
+~output.play;\
+~output.scope;\
+~output = ~limitedOut;\
+~output = ~limitedOut * [1.0, -1.0];\
+~output = ~limitedOut * [-1.0, -1.0];\
+\
+~delayedInput = \{ \cf4 AllpassN\cf3 .ar(~input.ar, 0.1, [0.1, 0.1].rand, [3, 3].rand2) \};\
+\
+~limitedOut = \{ \cf4 Normalizer\cf3 .ar(~delayedOut.ar, 0.5, 0.1) \};\
+\
+~output.add(\{ \cf4 Mix\cf3 .new(\cf4 Pan2\cf3 .ar(~limitedOut.ar, \cf4 SinOsc\cf3 .ar([rrand(800, 1000), rrand(800, 1000)]), 0.5)) \});\
+~output.add(\{ \cf4 Mix\cf3 .new(\cf4 Pan2\cf3 .ar(~limitedOut.ar, \cf4 SinOsc\cf3 .ar([rrand(4000, 6000), rrand(4000, 6000)]), 0.5)) \});\
+~output.add(\{ \cf4 Mix\cf3 .new(\cf4 Pan2\cf3 .ar(~limitedOut.ar, \cf4 SinOsc\cf3 .ar([rrand(8000, 10000), rrand(8000, 10000)]), 0.5)) \});\
+\
+(\
+~freq1 = \{ \cf4 LFNoise1\cf3 .kr(0.2.rand, 5000, 5000) \};\
+~freq2 = \{ \cf4 LFNoise1\cf3 .kr(0.2.rand, 5000, 5000) \};\
+~freq3 = \{ \cf4 LFNoise1\cf3 .kr(0.2.rand, 5000, 5000) \};\
+)\
+\
+(\
+~pmix = \{ (~p1.ar * ~p1Vol.kr * \cf4 LFNoise1\cf3 .kr(0.2.rand, 1, 1)) \
+	+ (~p2.ar * ~p2Vol.kr * \cf4 LFNoise1\cf3 .kr(0.2.rand, 1, 1)) \
+	+ (~p3.ar * ~p3Vol.kr * \cf4 LFNoise1\cf3 .kr(0.2.rand, 1, 1)) \};\
+)\
+\
+\cf2 // live GUI\cf3 \
+\cf2 //\cf3 \
+\cf2 // make a GUI window\cf3 \
+(\
+g = \cf4 SCWindow\cf3 (\cf5 "loop control panel"\cf3 , \cf4 Rect\cf3 (20, 380, 440, 470));\
+g.front;\
+g.view.decorator = \cf4 FlowLayout\cf3 (g.view.bounds);\
+)\
+\cf2 // make control sliders\cf3 \
+(\
+\cf4 var\cf3  incnt, outcnt, qcnt, f1cnt, f2cnt, f3cnt, p1vcnt, p2vcnt, p3vcnt, ffcnt, fbcnt, qfcnt, fbkfcnt, fbkcnt, fmcnt, qmcnt;\
+incnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "input"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~input.vol = ez.value; \}, 0.5);\
+outcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "output"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~output.vol = ez.value; \}, 0.5);\
+qcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "q"\cf3 , \cf4 ControlSpec\cf3 (0, 2, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~q = ez.value; \}, 0.5);\
+f1cnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "freq1"\cf3 , \cf4 ControlSpec\cf3 (20, 10000, \cf6 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~freq1 = ez.value; \}, 5000);\
+f2cnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "freq2"\cf3 , \cf4 ControlSpec\cf3 (20, 10000, \cf6 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~freq2 = ez.value; \}, 500);\
+f3cnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "freq3"\cf3 , \cf4 ControlSpec\cf3 (20, 10000, \cf6 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~freq3 = ez.value; \}, 50);\
+p1vcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "vol1"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~p1Vol = ez.value; \}, 0.3);\
+p2vcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "vol2"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~p2Vol = ez.value; \}, 0.3);\
+p3vcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "vol3"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~p3Vol = ez.value; \}, 0.3);\
+ffcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "freqf"\cf3 , \cf4 ControlSpec\cf3 (20, 10000, \cf6 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~freqf = ez.value; \}, 3000);\
+fbcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "freqb"\cf3 , \cf4 ControlSpec\cf3 (20, 10000, \cf6 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~freqf = ez.value; \}, 7000);\
+qfcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "qf"\cf3 , \cf4 ControlSpec\cf3 (0, 2, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~qf = ez.value; \}, 0.5);\
+fbkfcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "feedbackf"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~fbkf = ez.value; \}, 0.5);\
+fbkcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "feedback"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~fbk = ez.value; \}, 0.5);\
+fmcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "freqm"\cf3 , \cf4 ControlSpec\cf3 (20, 10000, \cf6 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~freqm = ez.value; \}, 1000);\
+qmcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "qm"\cf3 , \cf4 ControlSpec\cf3 (0, 2, \cf6 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~qm = ez.value; \}, 0.5);\
+)\
+\
+\
+\cf2 // recording\cf3 \
+r = p.record(\cf6 \\out\cf3 , \cf5 "NoiseFeedback.aiff"\cf3 );\
+r.unpause;\
+r.pause;\
+r.close;\
+\
+\cf2 //\cf3 \
+\cf2 // code bank\cf3 \
+\cf2 //\cf3 \
+\
+\cf2 // beat\cf3 \
+(\
+~beat1 = \{ \cf4 arg\cf3  freq = 20; \cf4 Blip\cf3 .ar(freq, 100, 0.3) \};\
+~beat2 = \{ \cf4 arg\cf3  freq = 50; \cf4 SinOsc\cf3 .ar(freq, 0, 0.1) \};\
+~beat3 = \{ \cf4 arg\cf3  freq = 9000; \cf4 Pulse\cf3 .ar(freq, 0.2, 0.1) \};\
+\
+~b.ar(1);\
+~b.fadeTime = 0;\
+~beat = \{ \cf4 arg\cf3  freq = 20; \cf4 Pan2\cf3 .ar(~b.ar(1), \cf4 SinOsc\cf3 .kr(freq)) \};\
+\
+~bt = \cf4 Routine\cf3 \{\
+		\cf4 var\cf3  dt;\
+		loop(\{\
+			dt = rrand(0.1, 1.0);\
+			~beat1.set(\cf6 \\freq\cf3 , rrand(8.0, 32.0));\
+			~beat2.set(\cf6 \\freq\cf3 , rrand(30.0, 100.0));\
+			~beat3.set(\cf6 \\freq\cf3 , rrand(8000, 10000));\
+			~beat.set(\cf6 \\freq\cf3 , rrand(10.0, 30.0));\
+			~b.fadeTime = dt;\
+			~b.read([~beat1, ~beat2, ~beat3].choose);\
+			dt.wait;\
+		\});\
+\};\
+)\
+\
+~bt.play;\
+~bt.stop;\
+~bt.release;\
+\
+~input.add(~beat);\
+~beat.play;\
+~beat.end(10);\
+~beat.vol = 5.0;\
+\
+\
+\cf2 // cloud\cf3 \
+(\
+~cloudary = \{\
+	\cf4 Mix\cf3 .new(\cf4 Array\cf3 .fill(60, \{\
+		\cf4 Pan2\cf3 .ar(\
+			\cf4 SinOsc\cf3 .ar(\
+				(20\
+					+ [0, 3, 8, 11, 16, 18].choose\
+					+ [-12.1, -5.9, -0.1, 0.1, 6.1, 11.9, 18.1, 24.1, 29.9, 36.1].choose\
+				).midicps \
+				*[1.0, 1.5 ,1.5*1.5, 1.5*1.5*1.5, 1.5*1.5*1.5*1.5].choose\
+					+ \cf4 LFNoise1\cf3 .kr(0.1.rand, 13.0.rand), 0),\
+				\cf4 LFNoise1\cf3 .kr(0.6 + 0.4.rand)\
+			)\
+	\}))*(0.2 / 60).dup\
+\};\
+)\
+~cloudlpf = \{ \cf4 RLPF\cf3 .ar(~cloudary.ar, rrand(1000, 2000), 0.2) \};\
+~cloudcomb = \{ \cf4 CombN\cf3 .ar(~cloudlpf.ar, 0.4, rrand(0.2, 0.4), 2, 1, ~cloudlpf.ar) \};\
+~cloudallp = \{ \cf4 AllpassL\cf3 .ar(~cloudcomb.ar, 0.1, \cf4 LFNoise2\cf3 .kr([rrand(0.01, 0.1),rrand(0.01, 0.1)], 0.05, 0.15), 2) \};\
+~cloud = \{ (~cloudallp.ar + ~cloud.ar).softclip * 0.5 \};\
+\
+~input.add(~cloud);\
+~cloud.play;\
+~cloudary.rebuild;\
+~cloud.end(10);\
+~cloud.vol = 8;\
+\
+(\
+c = \cf4 Task\cf3 (\{\
+		loop(\{\
+			~cloudary.rebuild;\
+			rrand(15, 25).wait;\
+			\});\
+		\});\
+)\
+c.start;\
+c.reset;\
+c.stop;\
+\
+\cf2 // down\cf3 \
+(\
+~down = \{ \cf4 Mix\cf3 .new(\cf4 Pan2\cf3 .ar(\
+		\cf4 SinOsc\cf3 .ar([30+5.0.rand2, 50+5.0.rand2, 70+5.0.rand2], 0, \cf4 LFNoise0\cf3 .kr([0.5.rand, 1.0.rand, 1.5.rand], [0.1, 0.1, 0.1]))\
+		)\
+	) \};\
+)\
+\
+~input.add(~down);\
+~down.play;\
+~down.rebuild;\
+~down.end(10);\
+\
+(\
+d = \cf4 Task\cf3 (\{\
+		loop(\{\
+			~down.rebuild;\
+			rrand(15, 25).wait;\
+			\});\
+		\});\
+)\
+d.start;\
+d.reset;\
+d.stop;\
+\
+\
+\cf2 // fluctuate\cf3 \
+(\
+~fluctuate = \{ \
+	sum(\
+		\cf4 SinOsc\cf3 .ar(\cf4 Rand\cf3 (300, 400) + (\{exprand(1, 1.3)\} ! rrand(1, 9)))		* \cf4 LFCub\cf3 .ar(\{exprand(30, 900)\} ! rrand(1, 9))\
+		* \cf4 LFSaw\cf3 .kr(\{exprand(1.0, 8.0)\} ! rrand(1, 9)).max(0)\
+		* 0.05.rand\
+	).dup\
+\};\
+)\
+~input.add(~fluctuate);\
+~fluctuate.play;\
+~fluctuate.rebuild;\
+~fluctuate.end(5);\
+\
+(\
+f = \cf4 Task\cf3 (\{\
+		loop(\{\
+			~fluctuate.rebuild;\
+			rrand(15, 25).wait;\
+			\});\
+		\});\
+)\
+f.start;\
+f.reset;\
+f.stop;\
+\
+\cf2 // klick\cf3 \
+~klick = \{ (\cf4 SinOsc\cf3 .ar([58, 62], 0, 0.1.rand) + \cf4 SinOsc\cf3 .ar([60, 57], 0, 0.1.rand) + \cf4 BrownNoise\cf3 .ar(0.02)) * \cf4 Saw\cf3 .ar(rrand(30, 50), 0.1.rand) + \cf4 LFNoise0\cf3 .ar([1.0.rand, 1.0.rand], 0.1.rand) \};\
+~input.add(~klick);\
+~klick.play;\
+~klick.rebuild;\
+~klick.end(10);\
+~klick.vol = 10;\
+\
+(\
+k = \cf4 Task\cf3 (\{\
+		loop(\{\
+			~klick.rebuild;\
+			rrand(15, 25).wait;\
+			\});\
+		\});\
+)\
+k.start;\
+k.reset;\
+k.stop;\
+\
+\cf2 // low\cf3 \
+~low = \{ \cf4 Resonz\cf3 .ar(\cf4 Saw\cf3 .ar(30 + [5.0.rand2, 5.0.rand2], 1), [rrand(1200, 1600), rrand(1200, 1600)], 0.05) + \cf4 SinOsc\cf3 .ar(60 * (1 + [0.2.rand2, 0.2.rand2]), 0, 0.05) \};\
+~input.add(~low);\
+~low.play;\
+~low.rebuild;\
+~low.end(10);\
+~low.vol = 5.0;\
+\
+(\
+l = \cf4 Task\cf3 (\{\
+		loop(\{\
+			~low.rebuild;\
+			rrand(15, 25).wait;\
+			\});\
+		\});\
+)\
+l.start;\
+l.reset;\
+l.stop;\
+\
+\cf2 // metal\cf3 \
+(\
+~metal = \{ \cf4 var\cf3  n = 5, p = 15, z;\
+			z = `[	\cf4 Array\cf3 .fill(p, \{ 80 + 20000.0.linrand\} ),					\cf4 Array\cf3 .fill(p, \{ 0.1.rand \}),\
+					\cf4 Array\cf3 .fill(p, \{ 0.2 + 8.0.rand \} )];\
+			\cf4 Pan2\cf3 .ar(\cf4 Klank\cf3 .ar(z, \cf4 Dust\cf3 .ar(rrand(0.5, 0.7), 0.04)), \cf4 SinOsc\cf3 .kr(0.5+1.0.rand2))\
+		\};\
+)\
+\
+(\
+~metal = \{ \cf4 var\cf3  n = 8, p = 10, exciter, spec;\
+			exciter = \cf4 Decay\cf3 .ar(\cf4 Dust\cf3 .ar(0.6.rand + 0.3, 0.001), 3.1, \cf4 WhiteNoise\cf3 .ar(0.05));\
+			spec = \cf4 Array\cf3 .fill(2, \{`[\cf4 Array\cf3 .fill(p, \{ 80 + 20000.0.linrand\} ), \cf4 nil\cf3 , \cf4 Array\cf3 .fill(p, \{ 0.2 + 4.0.rand \} )] \});\
+	\cf4 Klank\cf3 .ar(spec, exciter)\
+	\};\
+)\
+\
+(\
+~metal = \{ \cf4 var\cf3  p = 20, z;\
+	z = \cf4 Array\cf3 .fill(2, \{`[\cf4 Array\cf3 .fill(p, \{ 20 + 10000.0.rand \} ), \cf4 nil\cf3 , \cf4 Array\cf3 .fill(p, \{ 1.0 + 4.0.rand \})]\});\
+	\cf4 Klank\cf3 .ar(z, \cf4 Decay\cf3 .ar(\cf4 Impulse\cf3 .ar(1.0.rand + 0.5), 0.005, \cf4 WhiteNoise\cf3 .ar(0.001)));\
+	\};\
+)\
+\
+(\
+~metal = \{ \cf4 var\cf3  p = 20, exciter, spec;\
+			exciter = \cf4 BrownNoise\cf3 .ar(\cf4 Decay2\cf3 .kr(\cf4 Impulse\cf3 .kr(#[0.125,0.25,0.375,0.5,0.75,1,1.5,2].choose, 0, [0.01, 0.01]), 0.005, 0.05));\
+			spec = (\cf4 Klank\cf3 .ar(`[\cf4 Array\cf3 .fill(p, \{20000.0.linrand+60\}),\cf4 nil\cf3 ,\cf4 Array\cf3 .fill(p, \{rrand(0.5,2.0)\})], exciter) * 0.1).softclip;\
+	\}\
+)\
+\
+~input.add(~metal);\
+~metal.play;\
+~metal.rebuild;\
+~metal.end(10);\
+~metal.vol = 10;\
+\
+(\
+m = \cf4 Task\cf3 (\{\
+		loop(\{\
+			~metal.rebuild;\
+			rrand(15, 25).wait;\
+			\});\
+		\});\
+)\
+m.start;\
+m.reset;\
+m.stop;\
+\
+\cf2 // opt\cf3 \
+(\
+~opt = \{\
+		\cf4 var\cf3  p = 20, f, z = 0, offset;\
+		f = 20000.rand + 20;\
+		offset = \cf4 Line\cf3 .kr(0, -0.02, 40);\
+		p.do(\{ \cf4 arg\cf3  i;\
+			z = \cf4 FSinOsc\cf3 .ar(\
+					f * (i+1), 0,\
+					max(0, \cf4 LFNoise1\cf3 .kr(6 + [4.0.rand2, 4.0.rand2], 0.02, offset)), \
+					z ) \});\
+		z \};\
+)\
+\
+(\
+~opt = \{\
+	\cf4 var\cf3  p = 20, f, z = 0, trig;\
+	f = 20000.rand + 20;\
+	trig = \cf4 Line\cf3 .kr([10.0.rand, 10.0.rand], 0.1, 40);\
+	p.do(\{ \cf4 arg\cf3  i;\
+		z = \cf4 FSinOsc\cf3 .ar(\
+				f * (i+1),\
+				0,\
+				\cf4 Decay2\cf3 .kr(\cf4 Dust\cf3 .kr(trig, 0.02), 0.01, 0.01.rand),\
+				z ) \});\
+	z \};\
+)\
+\
+~input.add(~opt);\
+~opt.play;\
+~opt.rebuild;\
+~opt.end(10);\
+~opt = 10;\
+\
+(\
+p = \cf4 Task\cf3 (\{\
+		loop(\{\
+			~opt.rebuild;\
+			rrand(30, 40).wait;\
+			\});\
+		\});\
+)\
+p.start;\
+p.reset;\
+p.stop;\
+\
+\
+\cf2 // tone\cf3 \
+(\
+~tone = \{ \cf4 var\cf3  freq, x;\
+	freq = \cf4 LFPulse\cf3 .kr(2.0.rand, 0, 1.0.rand, \cf4 LFPulse\cf3 .kr(2.0.rand, 0, 1.0.rand, 16000.rand, 8000.rand))\
+			+ \cf4 LFPulse\cf3 .kr(2.0.rand, 0, 1.0.rand, \cf4 LFPulse\cf3 .kr(2.0.rand, 0, 1.0.rand, 16000.rand, 8000.rand));\
+	x = \cf4 LFPulse\cf3 .ar(freq + [0.5, 0.4].rand2, 0, 1.0.rand, 0.1, -0.05);\
+	\cf4 AllpassN\cf3 .ar(x, 0.05, [0.05, 0.05].rand, 0.5.rand, 0.05);\
+	\};\
+)\
+\
+(\
+~tone = \{ \cf4 Pan2\cf3 .ar(\
+		x = \cf4 LPZ2\cf3 .ar(\
+			\cf4 LFPulse\cf3 .ar(80 * rrand(1,32), \
+						2pi.rand, 0.1,\
+						\cf4 Mix\cf3 .new(\cf4 SinOsc\cf3 .ar(exprand(0.3,8) * [rrand(0.7, 1.3),1],\
+							[2pi.rand, 2pi.rand], 0.04)).max(0)\
+				* \cf4 Mix\cf3 .new(\cf4 SinOsc\cf3 .ar(exprand(6, 24) * [rrand(0.7, 1.3),1], [2pi.rand, 2pi.rand])).abs\
+					)),\
+		\cf4 SinOsc\cf3 .kr(1.0.rand + 0.1),\
+		0.5.rand); \
+		2.do(\{ x = \cf4 AllpassN\cf3 .ar(x, 0.05, [0.05.rand, 0.05.rand], 3.0.rand, 0.5.rand); \});\
+		x\
+	\};\
+)\
+\
+~input.add(~tone);\
+~tone.play;\
+~tone.rebuild;\
+~tone.end(5);\
+~tone.vol = 5.0;\
+\
+\
+(\
+t = \cf4 Task\cf3 (\{\
+		loop(\{\
+			~tone.rebuild;\
+			rrand(15, 25).wait;\
+			\});\
+		\});\
+)\
+t.start;\
+t.reset;\
+t.stop;\
+\
+\cf2 // vib\cf3 \
+(\
+~vib = \{ \cf4 var\cf3  a, a0, a1, b, c, pan;\
+		a0 = 200.0.rand + 20;\
+		a1 = a0 + 1.0.rand2;\
+		a = [a0, a1];\
+		b = 200.0.rand;\
+		c = [a0 + 1.0.rand2, a1 + 1.0.rand2];\
+		\cf4 SinOsc\cf3 .ar(\cf4 SinOsc\cf3 .ar(a, 0, 1.0.rand * b, b), 0, \cf4 SinOsc\cf3 .kr(c, 0, 0.02, 0.02))\
+		\};\
+)\
+~input.add(~vib);\
+~vib.play;\
+~vib.rebuild;\
+~vib.end(10);\
+~vib.vol = 10;\
+\
+(\
+v = \cf4 Task\cf3 (\{\
+		loop(\{\
+			~vib.rebuild;\
+			rrand(15, 25).wait;\
+			\});\
+		\});\
+)\
+v.start;\
+v.reset;\
+v.stop;\
+\
+\cf7 // dynamic stochastic synthesis by iannis xenakis\cf0 \
+\
+(\
+~dss = \{ \cf8 var\cf0  n;\
+		n=10;\
+		\cf8 Resonz\cf0 .ar(\cf8 Mix\cf0 .fill(n,\{\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf8 			var\cf0  minfreq, maxfreq, numcps;\
+			minfreq= exprand(20.0, 2000.0);\
+			maxfreq= minfreq;\
+			numcps= rrand(2, 20);\
+\cf8 			Pan2\cf0 .ar(\
+				\cf8 Gendy1\cf0 .ar(\
+					6.rand, 6.rand, \
+					exprand(0.0001, 1.0), exprand(0.0001, 1.0),\
+					minfreq, maxfreq, 1.0.rand, 1.0.rand,\
+					numcps, \cf8 SinOsc\cf0 .kr(exprand(0.02,0.2), 0, numcps/2, numcps/2),\
+					0.5/(n.sqrt)), 1.0.rand2) \}),\
+		\cf8 MouseX\cf0 .kr(100.0, 2000.0),\
+		\cf8 MouseY\cf0 .kr(0.01, 1.0))\
+		\};\
+)\
+~input.add(~dss);\
+~dss.play;\
+~dss.rebuild;\
+~dss.vol = 10;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 (\
+x = \cf8 Task\cf0 (\{\
+		loop(\{\
+			~dss.rebuild;\
+			rrand(15, 25).wait;\
+			\});\
+		\});\
+)\
+x.start;\
+x.reset;\
+x.stop;\
+}

@@ -1,0 +1,468 @@
+{\rtf1\mac\ansicpg10000\cocoartf824\cocoasubrtf420
+{\fonttbl\f0\fnil\fcharset77 Monaco;}
+{\colortbl;\red255\green255\blue255;\red191\green0\blue0;\red0\green0\blue191;\red96\green96\blue96;
+\red0\green115\blue0;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs36 \cf2 // =============================================\cf0 \
+\cf2 // SuperCollider Workspace for IRON CODE Project\cf0 \
+\cf2 // (c) akihiro kubota, 2007\cf0 \
+\cf2 // =============================================\cf0 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // current window\cf0 \
+(\
+d = \cf3 Document\cf0 .current;\
+d.font_(\cf3 Font\cf0 (\cf4 "Monaco"\cf0 , 18), -1);\
+d.background_(\cf3 Color\cf0 .new255(250, 250, 250, 230));\
+d.stringColor_(\cf3 Color\cf0 .new255(0, 0, 0, 255));\
+d.bounds_(\cf3 Rect\cf0 (540, 0, 900, 900));\
+d.syntaxColorize;\
+\
+\cf2 // listener window\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 Document\cf0 .listener.title_(\cf4 "post"\cf0 );\
+\cf3 Document\cf0 .listener.bounds_(\cf3 Rect\cf0 (0, 398, 640, 480));\
+\cf3 Document\cf0 .listener.background_(\cf3 Color\cf0 .new255(0, 0, 0, 230));\
+\cf3 Document\cf0 .listener.stringColor_(\cf3 Color\cf0 .new255(245, 245, 245, 145));\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // code dump\cf0 \
+codeDump = \{ \cf3 arg\cf0  x; x.postln; \};\
+\
+\cf2 // history\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 History\cf0 .clear; \
+\cf3 History\cf0 .start;\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // boot internal server\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 Server\cf0 .default = s = \cf3 Server\cf0 .internal;\
+s.options.numWireBufs = 128;\
+s.options.memSize = 32768;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 s.recSampleFormat = \cf4 "int16"\cf0 ;\
+s.recChannels = 4;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 s = \cf3 Server\cf0 .default;\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural
+\cf0 if(not(s.serverRunning), \{s.boot\});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // create a proxyspace\cf0 \
+p = \cf3 ProxySpace\cf0 .push(s);\
+p.fadeTime = 3;\
+p.clock = \cf3 TempoClock\cf0 .default;\
+\
+\cf2 // TdefEditor\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 t = \cf3 TdefAllGui\cf0 (16);\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 )\
+\
+(\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // spectrum (freqency analyzer)\cf0 \
+w = \cf3 SCWindow\cf0 .new(\cf4 "spectrum"\cf0 , \cf3 Rect\cf0 (0, 350, 512, 300), border: \cf3 false\cf0 );\
+w.alpha_(0.8);\
+f = \cf3 SCFreqScope\cf0 (w, \cf3 Rect\cf0 (0, 0, 513, 301));\
+f.dbRange_(96);\
+f.freqMode_(0);\
+f.inBus_(0);\
+f.active_(\cf3 true\cf0 );\
+w.onClose_(\{ f.kill \});\
+w.front;\
+\
+\cf2 // waveform (stethoscope)\cf0 \
+w = \cf3 SCWindow\cf0 .new(\cf4 "waveform"\cf0 , \cf3 Rect\cf0 (0, 51, 512, 300), border: \cf3 false\cf0 );\
+w.alpha_(0.8);\
+w.view.decorator = \cf3 FlowLayout\cf0 (w.view.bounds);\
+e = \cf3 Stethoscope\cf0 .new(s, 4, zoom:0.2, view:w.view);\
+w.onClose = \{ c.free \};\
+w.front;\
+)\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf2 // history\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 History\cf0 .stop;	\cf2 // stop collecting\cf0 \
+\cf3 History\cf0 .document; \cf2 // create a document with all the changes\cf0 \
+\cf3 History\cf0 .makeWin; \cf2 // gui window\cf0 \
+\cf3 History\cf0 .play;			\cf2 // posts lines by default;\cf0 \
+\cf3 History\cf0 .saveCS;\
+\cf3 History\cf0 .saveStory(\cf4 "~/Documents/LiveCoding/SC3/History_"\cf0  ++ \cf3 Date\cf0 .getDate.stamp ++ \cf4 ".sc"\cf0 );\
+\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // the end\cf0 \
+p.end(30);\
+p.clear.pop;\
+p.free;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 ///////////////////////////////////////////////////////////\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // define main output proxy (4ch)\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 (\
+~out.ar(4);\
+~out.play;\
+~out.vol = 1.0;\
+)\
+~out.stop;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // sub output proxies\cf0 \
+(\
+~in.ar(1);\
+~mix.ar(4);\
+~mic.ar(4);\
+~input.ar(4);\
+~feedback.ar(4);\
+~ext.ar(4);\
+)\
+\
+~out = ~mix * 0.0;\
+~out = \{ \cf3 Compander\cf0 .ar(~mix.ar, ~mix.ar, 0.5, 1, 0.5, 0.01, 0.01, 1.0) \};\
+~out = \cf3 nil\cf0 ;\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // mix\cf0 \
+~mix = (~feedback * 1.0) + (~ext * 1.0);\
+~mix = \cf3 nil\cf0 ;\
+\
+\cf2 // feedback\cf0 \
+~feedback = ~input * 1.0;\
+~feedback = \{ \cf3 Normalizer\cf0 .ar(~input.ar, 0.1, 0.01) \};\
+~feedback = \cf3 nil\cf0 ;\
+\
+\cf2 // microphone\cf0 \
+~in = \{ \cf3 AudioIn\cf0 .ar(1) \};\
+~mic =  \{ \cf3 Pan4\cf0 .ar(~in.ar, 0, 0, 1.0) \};\
+~mic =  \{ \cf3 Pan4\cf0 .ar(\cf3 Normalizer\cf0 .ar(~in.ar, 0.1, 0.01), 0, 0, 1.0) \};\
+~mic =  \{ \cf3 Pan4\cf0 .ar(\cf3 Compander\cf0 .ar(~in.ar, ~in.ar, 0.5, 1, 0.5, 0.01, 0.01), \cf3 LFTri\cf0 .kr(0.11), \cf3 LFTri\cf0 .kr(0.1), 1.0) \};\
+~mic =  \{ \cf3 Pan4\cf0 .ar(\cf3 HPF\cf0 .ar(~in.ar, 600), 0, 0, 1.0) \};\
+~mic =  \{ \cf3 Pan4\cf0 .ar(~in.ar, \cf3 LFTri\cf0 .kr(0.11), \cf3 LFTri\cf0 .kr(0.1), 1.0) \};\
+~mic = \cf3 nil\cf0 ;\
+\
+\cf2 // input\cf0 \
+~input = \{ \cf3 DelayC\cf0 .ar(~mic.ar, 5.0, [5.0, 5.0, 5.0, 5.0].rrand(1.0)) \};\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 (\
+~input = \{\
+	\cf3 DelayC\cf0 .ar(\
+		\cf3 PitchShift\cf0 .ar(~mic.ar, 	0.02, \
+		[1.0, 1.0, 1.0, 1.0].rrand(0.5), \
+		0, 0), \
+		5, \
+		[5.0, 5.0, 5.0, 5.0].rrand(3.0)\
+	) +\
+	\cf3 DelayC\cf0 .ar(\
+		\cf3 PitchShift\cf0 .ar(~mic.ar, 	0.02, \
+		[1.0, 1.0, 1.0, 1.0].rrand(1.5), \
+		0, 0), \
+		5, \
+		[5.0, 5.0, 5.0, 5.0].rrand(3.0)\
+	) \
+\};\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 )\
+~input = \cf3 nil\cf0 ;\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf2 // automatic update\cf0 \
+(\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 Tdef\cf0 (\cf5 \\iupdate\cf0 , \{ \
+	loop \{\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 		~input.rebuild;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 		rrand(10.0, 12.0).wait;\
+	\}\
+\})\
+)\
+\cf3 Tdef\cf0 (\cf5 \\iupdate\cf0 ).play;\
+\cf3 Tdef\cf0 (\cf5 \\iupdate\cf0 ).stop;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 ///////////////////////////////////////////////////////////\cf0 \
+\
+\
+\cf2 // exciter\cf0 \
+\
+~ext2 = \cf3 nil\cf0 ;\
+\
+~ext = \{ \cf3 Impulse\cf0 .ar((11000.0 ! 4).rrand(11050), 0, 0.1) + \cf3 SinOsc\cf0 .ar((50.0 ! 4).rrand(30), 0, 0.1).distort + \cf3 SinOsc\cf0 .ar((11000.0 ! 4).rrand(11050), 0, 0.05) \};\
+\
+~ext = \{ \cf3 Impulse\cf0 .ar((11000.0 ! 4).rrand(11050), 0, 0.1) + \cf3 SinOsc\cf0 .ar((11000.0 ! 4).rrand(12000), 0, 0.1) \};\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 (\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 Tdef\cf0 (\cf5 \\eupdate\cf0 , \{ \
+	loop \{\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 		~ext.rebuild;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 		rrand(10.0, 12.0).wait;\
+	\}\
+\})\
+)\
+\cf3 Tdef\cf0 (\cf5 \\eupdate\cf0 ).play;\
+\cf3 Tdef\cf0 (\cf5 \\eupdate\cf0 ).stop;\
+\
+~ext2 = \{ \cf3 Pan4\cf0 .ar(\cf3 Impulse\cf0 .ar(\cf3 LFPulse\cf0 .ar((1.0 !4).rrand(0.5), 0, 0.5, 11050.rrand(11000), 20.0.rrand(30.0)), 0, 1), \cf3 LFNoise1\cf0 .kr(0.11), \cf3 LFNoise1\cf0 .kr(0.1), 0.3) \};\
+\
+~ext = \{ \cf3 Pan4\cf0 .ar(\cf3 Impulse\cf0 .ar(\cf3 PeakFollower\cf0 .ar(\cf3 Dust\cf0 .ar(20, \cf3 Line\cf0 .kr(0, 1, 4)), 0.999) * 10 + (11050 ! 4).rrand(11060)), \cf3 LFPar\cf0 .kr(0.09), \cf3 LFPar\cf0 .kr(0.1), 0.1) \};\
+\
+~ext = \{ \cf3 Pan4\cf0 .ar(\cf3 SinOsc\cf0 .ar(11025.0), \cf3 ClipNoise\cf0 .kr(0.5), \cf3 ClipNoise\cf0 .kr(0.5), 0.5) \};\
+\
+~ext = \{ \cf3 Pan4\cf0 .ar(\cf3 SinOsc\cf0 .ar(\cf3 LFPulse\cf0 .ar((1.0 !4).rrand(0.5), 0, 0.1, 10000.rrand(11000), 30.0.rrand(20.0)), 0, 1), \cf3 ClipNoise\cf0 .kr, \cf3 ClipNoise\cf0 .kr, 0.1) \};\
+\
+\
+\
+\
+~ext = \{ \cf3 Pan4\cf0 .ar(\cf3 Impulse\cf0 .ar(11025, 0, \cf3 LFPulse\cf0 .ar(10.0, 0, 0.1, 0.5)), \cf3 LFTri\cf0 .kr(0.11), \cf3 LFTri\cf0 .kr(0.1), 0.1) \};\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 ~ext = \{ \cf3 Pan4\cf0 .ar(\cf3 LFPulse\cf0 .ar(10.0, 0, 0.1, \cf3 Impulse\cf0 .ar(11020, 0, 0.1)), \cf3 LFTri\cf0 .kr(0.11), \cf3 LFTri\cf0 .kr(0.1), 0.1) \};\
+\
+~ext = \{ \cf3 Pan4\cf0 .ar(\cf3 LFPulse\cf0 .ar(0.2, 0, 0.1, \cf3 Impulse\cf0 .ar(11000.rrand(11050), 0, 0.1)), \cf3 LFTri\cf0 .kr(0.11), \cf3 LFTri\cf0 .kr(0.1), 0.1) \};\
+\
+~ext2 = \{ \cf3 Impulse\cf0 .ar([8000.rrand(8100), 8001, 8002, 8003].scramble, 0, 0.5) * \cf3 Impulse\cf0 .ar([12000.rrand(13000), 11030, 11005, 11035].scramble, 0, 0.5) \};\
+\
+~ext2 = \{ \cf3 Impulse\cf0 .ar([9000.rrand(9100), 9001, 9002, 9003].scramble, 0, 0.1) * \cf3 Impulse\cf0 .ar([11000.rrand(12000), 11030, 11005, 11035].scramble, 0, 0.1) \};\
+\
+~ext = \{ \cf3 Crackle\cf0 .ar(\cf3 LFNoise1\cf0 .ar([500.0, 500.0, 500.0, 500.0].rrand(4.0), 0.5, 1.5), 0.5) * \cf3 ClipNoise\cf0 .ar([0.5, 0.5, 0.5, 0.5].rrand(0.2)) \};\
+\
+~ext = \{ \cf3 Formant\cf0 .ar([20, 20, 20, 20].rrand(30.0), \cf3 XLine\cf0 .kr([400, 400, 400, 400].rrand(500.0), [4000, 4000, 4000, 4000].rrand(5000.0), 300), 200, 0.1) \};\
+\
+~ext2 = \{ \cf3 Blip\cf0 .ar((40 ! 4).rrand(20.0), (300 ! 4).rrand(200.0), 0.0) \};\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 ~ext= \cf3 nil\cf0 ;\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 (\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 Tdef\cf0 (\cf5 \\eexchange\cf0 , \{ \
+	loop \{\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 		~ext = \{ \cf3 Impulse\cf0 .ar([11000, 11050, 11100, 11150].scramble, 0, 0.2) \};\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 		rrand(12.0, 15.0).wait;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 		~ext = \{ \cf3 Impulse\cf0 .ar([11025, 11075, 11125, 11175].scramble, 0, 0.2) \};\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 		rrand(2.0, 3.0).wait;\
+	\}\
+\})\
+)\
+\
+\cf3 Tdef\cf0 (\cf5 \\eexchange\cf0 ).play;\
+\cf3 Tdef\cf0 (\cf5 \\eexchange\cf0 ).stop;\
+\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // pitch tracking\cf0 \
+\
+(\
+~ext = \cf3 SynthDef\cf0 (\cf4 "pitchFollow"\cf0 ,\{\
+	\cf3 var\cf0  in, amp, freq, hasFreq, out;\
+	in = \cf3 Mix\cf0 .new(\cf3 AudioIn\cf0 .ar([1, 2]));\
+	amp = \cf3 Amplitude\cf0 .kr(in.min(0.9), 0.05, 0.05);\
+	# freq, hasFreq = \cf3 Pitch\cf0 .kr(in, ampThreshold: 0.02, median: 7).poll;\
+	out = \cf3 SinOsc\cf0 .ar((freq*[2.5, 3.5, 4.5, 7.5].scramble), 50, 0), 0, amp*0.01);\
+	\cf3 Out\cf0 .ar(0, out)\
+\});\
+)\
+\
+\cf2 // dss: dynamic stochastic synthesis by xenakis\cf0 \
+(\
+~ext = \{ \
+	\cf3 Pan4\cf0 .ar(\
+		\cf3 Gendy1\cf0 .ar(	\
+			7.rand, 1, 0.001.rrand(1.0), 0.001.rrand(1.0), 40, 50, \
+			0.rrand(1.0), 0.rrand(1.0), 12, 12, 0.1),\
+		\cf3 LFTri\cf0 .kr(0.1), \cf3 LFTri\cf0 .kr(0.11), 0.5) \};\
+)\
+\
+(\
+~ext = \{ \
+	\cf3 Pan4\cf0 .ar(\
+		\cf3 Gendy2\cf0 .ar(	\
+			7.rand, 1, 0.001.rrand(1.0), 0.001.rrand(1.0), 1, 20, \
+			0.rrand(1.0), 0.rrand(1.0), 12, 12, 0.001),\
+		\cf3 LFTri\cf0 .kr(0.1), \cf3 LFTri\cf0 .kr(0.11), 0.5) \};\
+)\
+\
+(\
+~ext = \{ \
+	\cf3 Pan4\cf0 .ar(\
+		\cf3 Gendy3\cf0 .ar(	\
+			7.rand, 1, 0.001.rrand(1.0), 0.001.rrand(1.0), 100.rrand(800), \
+			0.rrand(1.0), 0.rrand(1.0), 12, 12, 0.1),\
+		\cf3 LFTri\cf0 .kr(0.1), \cf3 LFTri\cf0 .kr(0.11), 0.5) \};\
+)\
+\
+\cf2 // chaos\cf0 \
+\
+~a.ar(4);\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 \
+~a = \{ \cf3 LFNoise1\cf0 .ar([100, 100, 100, 100].rrand(90.0), 0.03, 3.58) \};\
+~a = \{ \cf3 LFNoise1\cf0 .ar([100, 100, 100, 100].rrand(90.0), 0.03, 3.64) \};\
+~a = \{ \cf3 LFNoise1\cf0 .ar([100, 100, 100, 100].rrand(90.0), 0.03, 3.75) \};\
+~a = \{ \cf3 LFNoise1\cf0 .ar([100, 100, 100, 100].rrand(90.0), 0.005, 3.844) \};\
+\
+~ext2 = \{ \cf3 QuadN\cf0 .ar(\cf3 SampleRate\cf0 .ir, ~a.ar.neg, ~a.ar, 0, [1.0, 1.0, 1.0, 1.0].rand, 1.0) \};\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 ~ext2 = \cf3 nil\cf0 ;\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // granular synthesis\cf0 \
+(\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 SynthDef\cf0 (\cf5 \\gpoints\cf0 , \{\cf3 arg\cf0  amp=0.5, freq=100, xpan=0, ypan=0, sustain=0.01;	\cf3 var\cf0  env;\
+	env = \cf3 Env\cf0 .sine(sustain, amp);\
+	\cf3 Out\cf0 .ar(0, \
+		\cf3 Pan4\cf0 .ar(\
+		\cf3 Impulse\cf0 .ar(freq) * \cf3 EnvGen\cf0 .ar(env, doneAction:2),\
+		xpan, ypan))\
+	\}).store;\
+\cf3 SynthDef\cf0 (\cf5 \\gline\cf0 , \{\cf3 arg\cf0  amp=0.5, freq=441, xpan=0, ypan=0, sustain=0.01;	\cf3 var\cf0  env;\
+	env = \cf3 Env\cf0 .sine(sustain, amp);\
+	\cf3 Out\cf0 .ar(0, \
+		\cf3 Pan4\cf0 .ar(\
+		\cf3 SinOsc\cf0 .ar(freq) * \cf3 EnvGen\cf0 .ar(env, doneAction:2),\
+		xpan, ypan))\
+	\}).store;\
+\cf3 SynthDef\cf0 (\cf5 \\gplane\cf0 , \{\cf3 arg\cf0  amp=0.5, xpan=0, ypan=0, sustain=0.01;	\cf3 var\cf0  env;\
+	env = \cf3 Env\cf0 .sine(sustain, amp);\
+	\cf3 Out\cf0 .ar(0, \
+		\cf3 Pan4\cf0 .ar(\
+		\cf3 WhiteNoise\cf0 .ar * \cf3 EnvGen\cf0 .ar(env, doneAction:2),\
+		xpan, ypan))\
+	\}).store;\
+)\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 SynthDescLib\cf0 .read;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 SynthDescLib\cf0 .global.browse;\
+\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // recursive click patters\cf0 \
+(\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 Pdef\cf0 ( \cf5 \\ptflip\cf0 , \{\cf3 arg\cf0  freq=1000, dur=0.03, xpan=0, ypan=0;\
+	\cf3 Pbind\cf0 (\
+		\cf5 \\instrument\cf0 , \cf5 \\gpoints\cf0 ,\
+		\cf5 \\amp\cf0 , 0.3,\
+		\cf5 \\freq\cf0 , \cf3 Pseq\cf0 ([1.0, 0.1, 0.01], \cf3 inf\cf0 ) * freq.value,\
+		\cf5 \\dur\cf0 , dur.value / 2,\
+		\cf5 \\xpan\cf0 , xpan.value,\
+		\cf5 \\ypan\cf0 , ypan.value\
+	)\
+\}) ;\
+)\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // pbind \cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 (\
+~ext = \cf3 Pbind\cf0 (\
+	\cf5 \\type\cf0 , \cf5 \\phrase\cf0 ,\
+	\cf5 \\instrument\cf0 , \cf5 \\ptflip\cf0 ,\
+	\cf5 \\freq\cf0 , 100,\
+	\cf5 \\dur\cf0 , 1.0,\
+	\cf5 \\sustain\cf0 , 1.0,\
+	\cf5 \\xpan\cf0 , 0,\
+	\cf5 \\ypan\cf0 , 0,\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 	\cf5 \\recursionLevel\cf0 , 1);\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 )\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 (\
+~ext2 = \cf3 Pbind\cf0 (\
+	\cf5 \\type\cf0 , \cf5 \\phrase\cf0 ,\
+	\cf5 \\instrument\cf0 , \cf5 \\ptflip\cf0 ,\
+	\cf5 \\freq\cf0 , \cf3 Pn\cf0 (\cf3 Pgeom\cf0 (\cf3 Prand\cf0 ([100, 140, 130]), \cf3 Pseq\cf0 ([1.25, 1.5]), 4), \cf3 inf\cf0 ),\
+	\cf5 \\dur\cf0 , \cf3 Pseq\cf0 ([0.5, 0.9, 1.2], \cf3 inf\cf0 ),\
+	\cf5 \\sustain\cf0 , \cf3 Pseq\cf0 ([0.5, 0.9, 1.2], \cf3 inf\cf0 ),\
+	\cf5 \\xpan\cf0 , \cf3 Prand\cf0 ([-1, 0, 1], \cf3 inf\cf0 ),\
+	\cf5 \\ypan\cf0 , \cf3 Prand\cf0 ([-1, 0, 1], \cf3 inf\cf0 ),\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 	\cf5 \\recursionLevel\cf0 , \cf3 Prand\cf0 ([0, 1, 2], \cf3 inf\cf0 ));\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 )\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf2 // parameters\cf0 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf5 \\freq\cf0 , 100,\
+\cf5 \\freq\cf0 , \cf3 Prand\cf0 ([10000, 2500, 2000, 2, 1], \cf3 inf\cf0 ),\
+\cf5 \\freq\cf0 , \cf3 Prand\cf0 ([10000, 9100, 8010, 13000, 14000], \cf3 inf\cf0 ),\
+\cf5 \\freq\cf0 , \cf3 Prand\cf0 ([10000, 9100, 8010, 7090, 5900], \cf3 inf\cf0 ),\
+\cf5 \\freq\cf0 , \cf3 Prand\cf0 ([0, 0, 0], \cf3 inf\cf0 ),\
+\cf5 \\freq\cf0 , \cf3 Prand\cf0 ([11025, 2500, 200, 150, 10], \cf3 inf\cf0 ),\
+\cf5 \\freq\cf0 , \cf3 Prand\cf0 ([11020, 88230, 4400, 27, 22000], \cf3 inf\cf0 ),\
+\cf5 \\freq\cf0 , \cf3 Pn\cf0 (\cf3 Env\cf0 .linen(1, 1, 0.3, 200), \cf3 inf\cf0 ),\
+\cf5 \\freq\cf0 , \cf3 Pn\cf0 (\cf3 Pgeom\cf0 (100, 1.5, 4), \cf3 inf\cf0 ),\
+\cf5 \\freq\cf0 , \cf3 Pn\cf0 (\cf3 Pfunc\cf0 (\{10000.rand\}), \cf3 inf\cf0 ),\
+\cf5 \\freq\cf0 , \cf3 Prand\cf0 ([14150, 11200, 11300, 15350, 49, 1], \cf3 inf\cf0 ),\
+\
+\cf5 \\dur\cf0 , 1.0,\
+\cf5 \\dur\cf0 , \cf3 Pseq\cf0 ([0.5, 0.9, 1.2], \cf3 inf\cf0 ),\
+\
+\cf5 \\sustain\cf0 , 1.0,\
+\
+\cf5 \\xpan\cf0 , \cf3 Prand\cf0 ([-1, 0, 1], \cf3 inf\cf0 ),\
+\cf5 \\ypan\cf0 , \cf3 Prand\cf0 ([-1, 0, 1], \cf3 inf\cf0 ),\
+\
+\cf5 \\recursionLevel\cf0 , 0,\
+\cf5 \\recursionLevel\cf0 , 2,\
+\cf5 \\recursionLevel\cf0 , \cf3 Prand\cf0 ([0, 1, 2], \cf3 inf\cf0 ),\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 \
+\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 ///////////////////////////////////////////////////////\cf0 \
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+}

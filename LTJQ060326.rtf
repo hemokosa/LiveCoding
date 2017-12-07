@@ -1,0 +1,476 @@
+{\rtf1\mac\ansicpg10000\cocoartf824\cocoasubrtf350
+{\fonttbl\f0\fnil\fcharset77 Monaco;\f1\fnil\fcharset78 Osaka-Mono;}
+{\colortbl;\red255\green255\blue255;\red191\green0\blue0;\red0\green0\blue0;\red0\green0\blue191;
+\red96\green96\blue96;\red0\green115\blue0;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0\fs24 \cf2 //\cf3 \
+\cf2 // SC3 Live Coding Performance   (c) akihiro kubota, 2006\cf3 \
+\cf2 //\cf3 \
+\
+\cf2 // current window\cf3 \
+(\
+\cf4 Document\cf3 .current.background_(\cf4 Color\cf3 .new255(255, 255, 255, 240));\
+\cf4 Document\cf3 .current.stringColor_(\cf4 Color\cf3 .new255(0, 0, 0, 255));\
+\cf4 Document\cf3 .current.syntaxColorize;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab720\ql\qnatural
+\cf4 Document\cf3 .current.bounds_(\cf4 Rect\cf3 (650, 0, 750, 900));\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+\cf2 // post window\cf3 \
+(\
+\cf4 Document\cf3 .listener.title_(\cf5 "post"\cf3 );\
+\cf2 // Document.listener.font_(Font("Monaco", 9), -1);\cf3 \
+\cf4 Document\cf3 .listener.background_(\cf4 Color\cf3 .new255(50, 60, 70, 245));\
+\cf4 Document\cf3 .listener.stringColor_(\cf4 Color\cf3 .new255(245, 245, 245, 145));\
+)\
+\
+\cf2 // boot internal server\cf3 \
+(\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf4 Server\cf3 .default = s = \cf4 Server\cf3 .internal; \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 s.options.numWireBufs = 128;\
+s.options.memSize = 32768;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 s.recSampleFormat = \cf5 "int16"\cf3 ;\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural
+\cf3 if(not(s.serverRunning), \{s.boot\});\
+)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+s.queryAllNodes;\
+\
+\cf2 // create a proxyspace\cf3 \
+(\
+p = \cf4 ProxySpace\cf3 .push(s);\
+p.fadeTime = 10;\
+\cf4 TempoClock\cf3 .default.tempo = 1.0;\
+p.clock = \cf4 TempoClock\cf3 .default;\
+)\
+p.clock.tempo = 1.0;\
+\
+\cf2 // the end\cf3 \
+p.end(30);\
+p.clear;\
+p.free;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 \
+\cf2 // visualization\cf3 \
+(\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 s.scope(zoom: 0.2);\
+\cf4 FreqScope\cf3 .new(512, 200, 0);\
+)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // class browser\cf3 \
+\cf4 UGen\cf3 .browse
+\f1 \'81\'47\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0 \cf4 Object\cf3 .browse;\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf4 UGen\cf3 .dumpSubclassList;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf4 SynthDescLib\cf3 .global.read;\
+\cf4 SynthDescLib\cf3 .global.browse;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // current environment\cf3 \
+currentEnvironment.postln;\
+p;\
+\
+\cf2 //\cf3 \
+\cf2 // synthdefs\cf3 \
+\cf2 //\cf3 \
+\
+(\
+\cf2 // elements\cf3 \
+\cf4 SynthDef\cf3 (\cf6 \\points\cf3 , \{\cf4 arg\cf3  amp=0.5, freq=1, pan=0, sustain=10;	\cf4 var\cf3  env;\
+	env = \cf4 Env\cf3 .linen(0, sustain, 0, amp, 0);\
+	\cf4 Out\cf3 .ar(0, \
+		\cf4 Pan2\cf3 .ar(\
+		\cf4 Impulse\cf3 .ar(freq) * \cf4 EnvGen\cf3 .ar(env, doneAction:2),\
+		pan))\
+	\}).store;\
+\
+\cf4 SynthDef\cf3 (\cf6 \\line\cf3 , \{\cf4 arg\cf3  amp=0.5, freq=441, pan=0, sustain=10;	\cf4 var\cf3  env;\
+	env = \cf4 Env\cf3 .linen(0, sustain, 0, amp, 0);\
+	\cf4 Out\cf3 .ar(0, \
+		\cf4 Pan2\cf3 .ar(\
+		\cf4 SinOsc\cf3 .ar(freq) * \cf4 EnvGen\cf3 .ar(env, doneAction:2),\
+		pan))\
+	\}).store;\
+\
+\cf4 SynthDef\cf3 (\cf6 \\plane\cf3 , \{\cf4 arg\cf3  amp=0.5, pan=0, sustain=10;	\cf4 var\cf3  env;\
+	env = \cf4 Env\cf3 .linen(0, sustain, 0, amp, 0);\
+	\cf4 Out\cf3 .ar(0, \
+		\cf4 Pan2\cf3 .ar(\
+		\cf4 WhiteNoise\cf3 .ar * \cf4 EnvGen\cf3 .ar(env, doneAction:2),\
+		pan))\
+	\}).store;\
+\
+\cf4 SynthDef\cf3 (\cf6 \\points2\cf3 , \{\cf4 arg\cf3  amp1=0.2, amp2=0.7, freq1=2, freq2=0.5, pan1= -1, pan2=1, sustain=10;	\cf4 var\cf3  env;\
+	env = \cf4 Env\cf3 .new([amp1, amp2], [sustain]);\
+	\cf4 Out\cf3 .ar(0, \
+		\cf4 Pan2\cf3 .ar(\
+		\cf4 Impulse\cf3 .ar(\cf4 Line\cf3 .kr(freq1, freq2, sustain)) * \cf4 EnvGen\cf3 .ar(env, doneAction:2),\
+		\cf4 Line\cf3 .kr(pan1, pan2, sustain)))\
+	\}).store;\
+\
+\cf4 SynthDef\cf3 (\cf6 \\line2\cf3 , \{\cf4 arg\cf3  amp1=0.7, amp2=0.2, freq1=4410, freq2=441, pan1= -1, pan2=1, sustain=10;	\cf4 var\cf3  env;\
+	env = \cf4 Env\cf3 .new([amp1, amp2], [sustain]);\
+	\cf4 Out\cf3 .ar(0, \
+		\cf4 Pan2\cf3 .ar(\
+		\cf4 SinOsc\cf3 .ar(\cf4 Line\cf3 .kr(freq1, freq2, sustain)) * \cf4 EnvGen\cf3 .ar(env, doneAction:2),\
+		\cf4 Line\cf3 .kr(pan1, pan2, sustain)))\
+	\}).store;\
+\
+\cf4 SynthDef\cf3 (\cf6 \\plane2\cf3 , \{\cf4 arg\cf3  amp1=0.7, amp2=0.2, pan1= -1, pan2=1, sustain=10;	\cf4 var\cf3  env;\
+	env = \cf4 Env\cf3 .new([amp1, amp2], [sustain]);\
+	\cf4 Out\cf3 .ar(0, \
+		\cf4 Pan2\cf3 .ar(\
+		\cf4 WhiteNoise\cf3 .ar * \cf4 EnvGen\cf3 .ar(env, doneAction:2),\
+		\cf4 Line\cf3 .kr(pan1, pan2, sustain)))\
+	\}).store;\
+\
+\cf2 // particles\cf3 \
+\cf4 SynthDef\cf3 (\cf6 \\gpoints\cf3 , \{\cf4 arg\cf3  amp=0.5, freq=100, pan=0, sustain=0.01;	\cf4 var\cf3  env;\
+	env = \cf4 Env\cf3 .sine(sustain, amp);\
+	\cf4 Out\cf3 .ar(0, \
+		\cf4 Pan2\cf3 .ar(\
+		\cf4 Impulse\cf3 .ar(freq) * \cf4 EnvGen\cf3 .ar(env, doneAction:2),\
+		pan))\
+	\}).store;\
+\
+\cf4 SynthDef\cf3 (\cf6 \\gline\cf3 , \{\cf4 arg\cf3  amp=0.5, freq=441, pan=0, sustain=0.01;	\cf4 var\cf3  env;\
+	env = \cf4 Env\cf3 .sine(sustain, amp);\
+	\cf4 Out\cf3 .ar(0, \
+		\cf4 Pan2\cf3 .ar(\
+		\cf4 SinOsc\cf3 .ar(freq) * \cf4 EnvGen\cf3 .ar(env, doneAction:2),\
+		pan))\
+	\}).store;\
+\
+\cf4 SynthDef\cf3 (\cf6 \\gplane\cf3 , \{\cf4 arg\cf3  amp=0.5, pan=0, sustain=0.01;	\cf4 var\cf3  env;\
+	env = \cf4 Env\cf3 .sine(sustain, amp);\
+	\cf4 Out\cf3 .ar(0, \
+		\cf4 Pan2\cf3 .ar(\
+		\cf4 WhiteNoise\cf3 .ar * \cf4 EnvGen\cf3 .ar(env, doneAction:2),\
+		pan))\
+	\}).store;\
+\
+\cf4 SynthDef\cf3 (\cf6 \\rgpoints\cf3 , \{\cf4 arg\cf3  amp=0.1, freq0=22050.0, freq=441.0, pan=0, sustain=0.01, rq=0.001;\
+	\cf4 var\cf3  env = \cf4 Env\cf3 .sine(sustain, amp);\
+	\cf4 Out\cf3 .ar(0,\
+		\cf4 Resonz\cf3 .ar(\
+			\cf4 Pan2\cf3 .ar(\cf4 Impulse\cf3 .ar(freq0) * \cf4 EnvGen\cf3 .ar(env, doneAction:2), pan),\
+		freq, rq, 10))\
+	\}).store;\
+\
+\cf4 SynthDef\cf3 (\cf6 \\rgplane\cf3 , \{\cf4 arg\cf3  amp=0.1, freq=441.0, pan=0, sustain=0.01, rq=0.001;\
+	\cf4 var\cf3  env = \cf4 Env\cf3 .sine(sustain, amp);\
+	\cf4 Out\cf3 .ar(0,\
+		\cf4 Resonz\cf3 .ar(\
+			\cf4 Pan2\cf3 .ar(\cf4 WhiteNoise\cf3 .ar * \cf4 EnvGen\cf3 .ar(env, doneAction:2), pan),\
+		freq, rq, 10))\
+	\}).store;\
+)\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // define output proxy\cf3 \
+(\
+~out.ar(2);\
+~out.play(0, 2);\
+~out.vol = 1.0;\
+)\
+p.fadeTime = 3;\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\cf2 // proxies\cf3 \
+\
+(\
+~layer.ar(2);\
+~micin.ar(2);\
+~feedback.ar(2);\
+~out = ~layer + ~micin + ~feedback;\
+)\
+\
+~micin = \{ \cf4 AudioIn\cf3 .ar([1, 2], 0.1) \};\
+~micin = \{ \cf4 LPF\cf3 .ar(\cf4 AudioIn\cf3 .ar([1, 2]), 10) \};\
+~micin = \{ \cf4 Normalizer\cf3 .ar(\cf4 AudioIn\cf3 .ar([1, 2]), 0.1, 0.1) \};\
+\
+~feedback = \{ \cf4 InFeedback\cf3 .ar([1, 0], 2) * 0.3 \};\
+\
+p.fadeTime = 0;\
+~out.stop;\
+~out.play;\
+\
+\cf2 // layers\cf3 \
+\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(8820, 0, 0.5).dup \};  \
+~layer[1] = \{ \cf4 Impulse\cf3 .ar(8820 + [50, 50].rand2, 0, -0.1) \};\
+~layer[2] = \{ \cf4 Impulse\cf3 .ar(8820 + [50, 50].rand2, 0, 0.1) \};\
+~layer[3] = \{ \cf4 Impulse\cf3 .ar(8840 + [50, 50].rand2, 0, 0.1) \};\
+~layer[4] = \{ \cf4 Impulse\cf3 .ar(8800 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 50, 0).rand2, 0, -0.1) \};\
+~layer[5] = \{ \cf4 Impulse\cf3 .ar(8850 + [10, 10].rand2, 0, 0.1) * ~layer.ar \};\
+\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(8700, 0, [-0.1, 0.1]) * \cf4 Normalizer\cf3 .ar(~out.ar, 10.0, 0.01) \};\
+~layer[1] = \{ \cf4 Impulse\cf3 .ar(8600 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0), 0, [-0.1, 0.1]) \};\
+~layer[2] = \{ \cf4 Impulse\cf3 .ar(11028, 0, [0.1, -0.1]) \};\
+~layer[2] = \{ \cf4 LFPulse\cf3 .ar(0.5 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 0.1, 0), 0, 0.25, \cf4 Impulse\cf3 .ar(11032, 0, [0.2, -0.2])) \};\
+~layer[3] = \{ \cf4 LFTri\cf3 .ar(0.7, 0, \cf4 Impulse\cf3 .ar(11020, 0, [-0.1, 0.1])) \};\
+~layer[4] = \{ \cf4 LFTri\cf3 .ar(0.4, 0, \cf4 Impulse\cf3 .ar(11020, 0, [0.1, -0.1])) * \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0), 0, 1.0) \};\
+\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(22050, 0, [0.1, -0.1])\};\
+~layer[1] = \{ \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0), 0, [-0.1, 0.1]) \};\
+~layer[2] = \{ \cf4 Impulse\cf3 .ar(22100, 0, [0.1, -0.1]) \};\
+~layer[2] = \{ \cf4 LFTri\cf3 .ar(0.4, 0, \cf4 Impulse\cf3 .ar(14650, 0, [0.1, -0.1])) \};\
+~layer[6] = \{ \cf4 LFPulse\cf3 .ar(1.0, 0, 0.25, \cf4 Impulse\cf3 .ar(8000, 0, [0.1, -0.1])) \};\
+~layer[3] = \{ \cf4 LFTri\cf3 .ar(0.7, 0, \cf4 Impulse\cf3 .ar(8300, 0, [-0.1, 0.1])) \};\
+\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(22050, 0, [0.1, -0.1]) * \cf4 Impulse\cf3 .ar(22000, 0, [0.1, -0.1])\};\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(11025, 0, [0.1, -0.1]) * \cf4 Impulse\cf3 .ar(11020, 0, [0.1, -0.1])\};\
+~layer[1] = \{ \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0), 0, [-0.1, 0.1]) \};\
+~layer[2] = \{ \cf4 Impulse\cf3 .ar(22100, 0, [0.1, -0.1]) \};\
+~layer[2] = \{ \cf4 LFTri\cf3 .ar(0.4, 0, \cf4 Impulse\cf3 .ar(14650, 0, [0.1, -0.1])) \};\
+~layer[7] = \{ \cf4 LFPulse\cf3 .ar(1.0, 0, 0.1, \cf4 Impulse\cf3 .ar(8438, 0, [0.2, -0.2])) \};\
+~layer[3] = \{ \cf4 LFTri\cf3 .ar(0.38, 0, \cf4 Impulse\cf3 .ar(14750, 0, [-0.1, 0.1])) \};\
+~layer[4] = \{ \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0), 0, -0.1) \};\
+~layer[5] = \{ \cf4 Impulse\cf3 .ar(11025 + [10, 10].rand2, 0, 0.1) * ~layer.ar \};\
+\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(11025, 0, [0.1, -0.1]) * \cf4 Impulse\cf3 .ar(11026, 0, [-0.1, 0.1])\};\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(11025, 0, [0.1, -0.1]) * \cf4 Impulse\cf3 .ar(11020, 0, [0.1, -0.1])\};\
+~layer[1] = \{ \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0), 0, [0.1, 0.1]) \};\
+~layer[2] = \{ \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0), 0, [-0.1, -0.1]) \};\
+~layer[2] = \{ \cf4 Impulse\cf3 .ar(22100, 0, [0.1, -0.1]) \};\
+~layer[3] = \{ \cf4 LFPulse\cf3 .ar(0.5, 0, 0.25, \cf4 Impulse\cf3 .ar(14650, 0, [-0.2, -0.2])) \};\
+~layer[3] = \{ \cf4 LFTri\cf3 .ar(0.38, 0, \cf4 Impulse\cf3 .ar(11025, 0, [-0.1, 0.1])) \};\
+~layer[4] = \{ \cf4 Impulse\cf3 .ar(11022 + \cf4 LFPulse\cf3 .ar([0.1, 0.1].rand, 0, 0.1, 20), 0, 0.1) \};\
+~layer[5] = \{ \cf4 Impulse\cf3 .ar(11035 + [10, 10].rand2, 0, 0.1) * ~layer.ar \};\
+\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(12500, 0, 0.1).dup \};\
+~layer[1] = \{ \cf4 Impulse\cf3 .ar(11045 + [50, 50].rand2, 0, -0.1) \};\
+~layer[2] = \{ \cf4 Impulse\cf3 .ar(13000 + [10, 10].rand2, 0, 0.1) \};\
+~layer[3] = \{ \cf4 Impulse\cf3 .ar(12000 + [10, 10].rand2, 0, 0.1) \};\
+~layer[4] = \{ \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0).rand2, 0, -0.1) \};\
+~layer[5] = \{ \cf4 Impulse\cf3 .ar(20000 + [10, 10].rand2, 0, 0.1) * ~layer.ar \};\
+\
+~layer[6] = \{ \cf4 SinOsc\cf3 .ar(50 + [10, 10].rand2, 0, 0.1) \};\
+~layer[7] = \{ \cf4 SinOsc\cf3 .ar(50 + [10, 10].rand2, 0, 0.1) \};\
+~layer[8] = \{ \cf4 SinOsc\cf3 .ar(11055 + [10, 10].rand2, 0, 0.1) \};\
+\
+~layer[6] = \{ \cf4 Impulse\cf3 .ar(12000 + [10, 10].rand2, 0, 0.1) \};\
+~layer[7] = \{ \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0).rand2, 0, -0.1) \};\
+\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(12000, 0, 0.1).dup \};\
+~layer[1] = \{ \cf4 Impulse\cf3 .ar(10045 + [50, 50].rand2, 0, -0.1) \};\
+~layer[2] = \{ \cf4 Impulse\cf3 .ar(14700 + [10, 10].rand2, 0, 0.1) \};\
+~layer[3] = \{ \cf4 Impulse\cf3 .ar(14600 + [10, 10].rand2, 0, 0.1) \};\
+~layer[4] = \{ \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0).rand2, 0, -0.1) \};\
+~layer[5] = \{ \cf4 Impulse\cf3 .ar(20000 + [10, 10].rand2, 0, 0.1) * ~layer.ar \};\
+\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(11025, 0, [1.0, 1.0]) * \cf4 Normalizer\cf3 .ar(~micin.ar, 10.0, 0.01) \};\
+~layer[1] = \{ \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0), 0, [-0.1, 0.1]) \};\
+~layer[2] = \{ \cf4 Impulse\cf3 .ar(11028, 0, [0.1, -0.1]) \};\
+~layer[2] = \{ \cf4 LFPulse\cf3 .ar(0.5 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 0.1, 0), 0, 0.25, \cf4 Impulse\cf3 .ar(11032, 0, [0.2, -0.2])) \};\
+~layer[3] = \{ \cf4 LFTri\cf3 .ar(0.38, 0, \cf4 Impulse\cf3 .ar(11020, 0, [-0.1, 0.1])) \};\
+~layer[4] = \{ \cf4 LFTri\cf3 .ar(0.4, 0, \cf4 Impulse\cf3 .ar(11020, 0, [0.1, -0.1])) * \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0), 0, 1.0) \};\
+\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(22050, 0, [0.1, -0.1])\};\
+~layer[1] = \{ \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0), 0, [-0.1, 0.1]) \};\
+~layer[2] = \{ \cf4 Impulse\cf3 .ar(22100, 0, [0.1, -0.1]) \};\
+~layer[2] = \{ \cf4 LFTri\cf3 .ar(0.4, 0, \cf4 Impulse\cf3 .ar(14650, 0, [0.1, -0.1])) \};\
+~layer[2] = \{ \cf4 LFPulse\cf3 .ar(0.5, 0, 0.25, \cf4 Impulse\cf3 .ar(14650, 0, [0.2, -0.2])) \};\
+~layer[3] = \{ \cf4 LFTri\cf3 .ar(0.38, 0, \cf4 Impulse\cf3 .ar(14750, 0, [-0.1, 0.1])) \};\
+\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(22050, 0, [0.1, -0.1]) * \cf4 Impulse\cf3 .ar(22000, 0, [0.1, -0.1])\};\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(11025, 0, [0.1, -0.1]) * \cf4 Impulse\cf3 .ar(11020, 0, [0.1, -0.1])\};\
+~layer[1] = \{ \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0), 0, [-0.1, 0.1]) \};\
+~layer[2] = \{ \cf4 Impulse\cf3 .ar(22100, 0, [0.1, -0.1]) \};\
+~layer[2] = \{ \cf4 LFTri\cf3 .ar(0.4, 0, \cf4 Impulse\cf3 .ar(14650, 0, [0.1, -0.1])) \};\
+~layer[2] = \{ \cf4 LFPulse\cf3 .ar(0.5, 0, 0.25, \cf4 Impulse\cf3 .ar(14650, 0, [0.2, -0.2])) \};\
+~layer[3] = \{ \cf4 LFTri\cf3 .ar(0.38, 0, \cf4 Impulse\cf3 .ar(14750, 0, [-0.1, 0.1])) \};\
+~layer[4] = \{ \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0), 0, -0.1) \};\
+~layer[5] = \{ \cf4 Impulse\cf3 .ar(11025 + [10, 10].rand2, 0, 0.1) * ~layer.ar \};\
+\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(11025, 0, [0.1, -0.1]) * \cf4 Impulse\cf3 .ar(11026, 0, [-0.1, 0.1])\};\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(11025, 0, [0.1, -0.1]) * \cf4 Impulse\cf3 .ar(11020, 0, [0.1, -0.1])\};\
+~layer[1] = \{ \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0), 0, [0.1, 0.1]) \};\
+~layer[2] = \{ \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0), 0, [-0.1, -0.1]) \};\
+~layer[2] = \{ \cf4 Impulse\cf3 .ar(22100, 0, [0.1, -0.1]) \};\
+~layer[3] = \{ \cf4 LFPulse\cf3 .ar(0.5, 0, 0.25, \cf4 Impulse\cf3 .ar(14650, 0, [-0.2, -0.2])) \};\
+~layer[3] = \{ \cf4 LFTri\cf3 .ar(0.38, 0, \cf4 Impulse\cf3 .ar(11025, 0, [-0.1, 0.1])) \};\
+~layer[4] = \{ \cf4 Impulse\cf3 .ar(11022 + \cf4 LFPulse\cf3 .ar([0.1, 0.1].rand, 0, 0.1, 20), 0, 0.1) \};\
+~layer[5] = \{ \cf4 Impulse\cf3 .ar(11035 + [10, 10].rand2, 0, 0.1) * ~layer.ar \};\
+\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(11000, 0, 0.1).dup \};\
+~layer[1] = \{ \cf4 Impulse\cf3 .ar(10045 + [50, 50].rand2, 0, -0.1) \};\
+~layer[2] = \{ \cf4 Impulse\cf3 .ar(14700 + [50, 50].rand2, 0, 0.1) \};\
+~layer[3] = \{ \cf4 Impulse\cf3 .ar(11000 + [50, 50].rand2, 0, 0.1) \};\
+~layer[4] = \{ \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 50, 0).rand2, 0, -0.1) \};\
+~layer[5] = \{ \cf4 Impulse\cf3 .ar(20000 + [10, 10].rand2, 0, 0.1) * ~layer.ar \};\
+\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(11025, 0, [-0.1, 0.1]) * \cf4 Normalizer\cf3 .ar(~out.ar, 10.0, 0.01) \};\
+~layer[1] = \{ \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0), 0, [-0.1, 0.1]) \};\
+~layer[2] = \{ \cf4 Impulse\cf3 .ar(11028, 0, [0.1, -0.1]) \};\
+~layer[2] = \{ \cf4 LFPulse\cf3 .ar(1 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 0.1, 0), 0, 0.25, \cf4 Impulse\cf3 .ar(11032, 0, [0.2, -0.2])) \};\
+~layer[3] = \{ \cf4 LFTri\cf3 .ar(0.7, 0, \cf4 Impulse\cf3 .ar(11020, 0, [-0.1, 0.1])) \};\
+~layer[4] = \{ \cf4 LFTri\cf3 .ar(0.4, 0, \cf4 Impulse\cf3 .ar(11020, 0, [0.1, -0.1])) * \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0), 0, 1.0) \};\
+\
+~layer[0] = \{ \cf4 WhiteNoise\cf3 .ar([0.1, -0.1])\};\
+~layer[1] = \{ \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0), 0, [-0.1, 0.1]) \};\
+~layer[2] = \{ \cf4 Impulse\cf3 .ar(22100, 0, [0.1, -0.1]) \};\
+~layer[2] = \{ \cf4 LFTri\cf3 .ar(0.4, 0, \cf4 Impulse\cf3 .ar(14650, 0, [0.1, -0.1])) \};\
+~layer[2] = \{ \cf4 LFPulse\cf3 .ar(0.5, 0, 0.1, \cf4 Impulse\cf3 .ar(11300, 0, [0.1, -0.1])) \};\
+~layer[3] = \{ \cf4 LFTri\cf3 .ar(0.38, 0, \cf4 Impulse\cf3 .ar(14750, 0, [-0.1, 0.1])) \};\
+\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(8820, 0, [0., -0.1]) * \cf4 WhiteNoise\cf3 .ar([0.1, -0.1])\};\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(8835, 0, [0.1, -0.1]) * \cf4 Impulse\cf3 .ar(8830, 0, [0.1, -0.1])\};\
+~layer[1] = \{ \cf4 Impulse\cf3 .ar(8845 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0), 0, [-0.1, 0.1]) \};\
+~layer[2] = \{ \cf4 Impulse\cf3 .ar(88, 0, [0.1, -0.1]) \};\
+~layer[2] = \{ \cf4 LFTri\cf3 .ar(0.4, 0, \cf4 Impulse\cf3 .ar(14650, 0, [0.1, -0.1])) \};\
+~layer[2] = \{ \cf4 LFPulse\cf3 .ar(2, 0, 0.25, \cf4 Impulse\cf3 .ar(14650, 0, [0.2, -0.2])) \};\
+~layer[3] = \{ \cf4 LFTri\cf3 .ar(0.38, 0, \cf4 Impulse\cf3 .ar(14750, 0, [-0.1, 0.1])) \};\
+~layer[4] = \{ \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0), 0, -0.1) \};\
+~layer[5] = \{ \cf4 Impulse\cf3 .ar(11025 + [10, 10].rand2, 0, 0.1) * ~layer.ar \};\
+\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(11025, 0, [0.1, -0.1]) * \cf4 Impulse\cf3 .ar(11026, 0, [-0.1, 0.1])\};\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(11025, 0, [0.1, -0.1]) * \cf4 Impulse\cf3 .ar(11020, 0, [0.1, -0.1])\};\
+~layer[1] = \{ \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0), 0, [0.1, 0.1]) \};\
+~layer[2] = \{ \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0), 0, [-0.1, -0.1]) \};\
+~layer[2] = \{ \cf4 Impulse\cf3 .ar(8888, 0, [0.1, -0.1]) \};\
+~layer[3] = \{ \cf4 LFPulse\cf3 .ar(0.5, 0, 0.25, \cf4 Impulse\cf3 .ar(14650, 0, [-0.2, -0.2])) \};\
+~layer[3] = \{ \cf4 LFTri\cf3 .ar(0.38, 0, \cf4 Impulse\cf3 .ar(11025, 0, [-0.1, 0.1])) \};\
+~layer[4] = \{ \cf4 Impulse\cf3 .ar(11022 + \cf4 LFPulse\cf3 .ar([0.1, 0.1].rand, 0, 0.1, 20), 0, 0.1) \};\
+~layer[5] = \{ \cf4 Impulse\cf3 .ar(11035 + [10, 10].rand2, 0, 0.1) * ~layer.ar \};\
+\
+~layer[0] = \{ \cf4 Impulse\cf3 .ar(12500, 0, 0.1).dup \};\
+~layer[1] = \{ \cf4 Impulse\cf3 .ar(11045 + [50, 50].rand2, 0, -0.1) \};\
+~layer[2] = \{ \cf4 Impulse\cf3 .ar(13000 + [10, 10].rand2, 0, 0.1) \};\
+~layer[3] = \{ \cf4 Impulse\cf3 .ar(12000 + [10, 10].rand2, 0, 0.1) \};\
+~layer[4] = \{ \cf4 Impulse\cf3 .ar(11025 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0).rand2, 0, -0.1) \};\
+~layer[5] = \{ \cf4 Impulse\cf3 .ar(20000 + [10, 10].rand2, 0, 0.1) * ~layer.ar \};\
+\
+~layer[6] = \{ \cf4 SinOsc\cf3 .ar(50 + [10, 10].rand2, 0, 0.1) \};\
+~layer[7] = \{ \cf4 SinOsc\cf3 .ar(8800 + [10, 10].rand2, 0, 0.1) \};\
+~layer[8] = \{ \cf4 SinOsc\cf3 .ar(8900 + [10, 10].rand2, 0, 0.1) \};\
+\
+~layer[6] = \{ \cf4 Impulse\cf3 .ar(8888 + [10, 10].rand2, 0, 0.1) \};\
+~layer[7] = \{ \cf4 Impulse\cf3 .ar(8800 + \cf4 LFNoise1\cf3 .ar([0.1, 0.1].rand, 10, 0).rand2, 0, -0.1) \};\
+\
+\
+~layer.clear;\
+\
+\cf2 // patterns\cf3 \
+\
+(\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf2 // flip\cf3 \
+\cf4 Pdef\cf3 ( \cf6 \\gpflip\cf3 , \{ \cf4 arg\cf3  freq=8820, dur=0.1, pan=0;\
+	\cf4 Pbind\cf3 (\
+		\cf6 \\instrument\cf3 , \cf6 \\gpoints\cf3 ,\
+		\cf6 \\amp\cf3 , \cf4 Pfunc\cf3 (\{0.1.rand2\}),\
+		\cf6 \\freq\cf3 , \cf4 Pseq\cf3 (#[1.0, 2.0], \cf4 inf\cf3 ) * freq.value,\
+		\cf6 \\dur\cf3 , dur.value / 2,\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		\cf6 \\pan\cf3 , pan.value\
+	)\});\
+\
+\cf2 // arpeggio\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf4 Pdef\cf3 ( \cf6 \\gparpeggio\cf3 , \{ \cf4 arg\cf3  freq=11050, dur=0.1, pan=0, n=6;\
+	\cf4 Pbind\cf3 (\
+		\cf6 \\instrument\cf3 , \cf6 \\gpoints\cf3 ,\
+		\cf6 \\amp\cf3 , \cf4 Pfunc\cf3 (\{0.1.rand2\}),\
+		\cf6 \\freq\cf3 , \cf4 Pseq\cf3 (\cf4 Array\cf3 .geom(n, 1, 2**(1/(n-1)))) * freq.value,\
+		\cf6 \\dur\cf3 , dur.value / n,\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		\cf6 \\pan\cf3 , pan.value\
+	)\});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 \
+\cf2 // glissando\cf3 \
+\cf4 Pdef\cf3 ( \cf6 \\gpglissando\cf3 , \{ \cf4 arg\cf3  freq=11050, dur=0.1, pan=0, n=6;\
+	\cf4 Pbind\cf3 (\
+		\cf6 \\instrument\cf3 , \cf6 \\gpoints\cf3 ,\
+		\cf6 \\amp\cf3 , \cf4 Pfunc\cf3 (\{0.1.rand2\}),\
+		\cf6 \\freq\cf3 , \cf4 Pseq\cf3 (\cf4 Array\cf3 .series(n, 1, 0.01)) * freq.value,\
+		\cf6 \\dur\cf3 , dur.value / n,\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		\cf6 \\pan\cf3 , pan.value\
+	)\});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 )\
+\
+\
+\cf2 // proxies\cf3 \
+\
+\cf4 Pdef\cf3 (\cf6 \\gp\cf3 ).play;\
+\cf4 Pdef\cf3 (\cf6 \\gp\cf3 ).stop;\
+\
+\cf4 Pdef\cf3 .all;\
+\
+\cf2 // zoom in\cf3 \
+\cf4 TempoClock\cf3 .default.tempo = 0.2;\
+\cf4 TempoClock\cf3 .default.tempo = 1.0;\
+\
+\cf2 // recursive patterns\cf3 \
+\
+(\
+\cf4 Pdef\cf3 (\cf6 \\gp\cf3 ,\
+	\cf4 Pbind\cf3 (\
+		\cf6 \\type\cf3 , \cf6 \\phrase\cf3 ,\
+		\cf6 \\instrument\cf3 , \cf6 \\gpflip\cf3 ,\
+		\cf6 \\freq\cf3 , \cf4 Pfunc\cf3 (\{11025 + 50.0.rand2\}),\
+		\cf6 \\dur\cf3 , 0.1,\
+		\cf6 \\pan\cf3 , \cf4 Pfunc\cf3 (\{1.0.rand2\}),\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		\cf6 \\recursionLevel\cf3 , 1\
+	));\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 )\
+\
+\cf2 // parameters\cf3 \
+\cf4 Pbindef\cf3 (\cf6 \\gp\cf3 , \cf6 \\instrument\cf3 , \cf6 \\gpflip\cf3 );\
+\cf4 Pbindef\cf3 (\cf6 \\gp\cf3 , \cf6 \\instrument\cf3 , \cf6 \\gparpeggio\cf3 );\
+\cf4 Pbindef\cf3 (\cf6 \\gp\cf3 , \cf6 \\instrument\cf3 , \cf6 \\gpglissando\cf3 );\
+\
+\cf4 Pbindef\cf3 (\cf6 \\gp\cf3 , \cf6 \\freq\cf3 , 11025);\
+\cf4 Pbindef\cf3 (\cf6 \\gp\cf3 , \cf6 \\freq\cf3 , \cf4 Pfunc\cf3 (\{11025 + 10.0.rand2\}));\
+\
+\cf4 Pbindef\cf3 (\cf6 \\gp\cf3 , \cf6 \\dur\cf3 , 0.5);\
+\cf4 Pbindef\cf3 (\cf6 \\gp\cf3 , \cf6 \\dur\cf3 , \cf4 Pfunc\cf3 (\{0.3.rrand(0.5)\}));\
+\cf4 Pbindef\cf3 (\cf6 \\gp\cf3 , \cf6 \\legato\cf3 , 3);\
+\
+\cf4 Pbindef\cf3 (\cf6 \\gp\cf3 , \cf6 \\recursionLevel\cf3 , 3);\
+\cf4 Pbindef\cf3 (\cf6 \\gp\cf3 , \cf6 \\recursionLevel\cf3 , \cf4 Prand\cf3 ([1, 2], \cf4 inf\cf3 ));\
+\
+\cf4 Pbindef\cf3 (\cf6 \\gp\cf3 , \cf6 \\n\cf3 , 8);\
+\
+\cf4 Pbindef\cf3 (\cf6 \\gp\cf3 , \cf6 \\freq\cf3 , \cf4 Prand\cf3 ([11050, 250, 200, 150], \cf4 inf\cf3 ));\
+\cf4 Pbindef\cf3 (\cf6 \\gp\cf3 , \cf6 \\freq\cf3 , \cf4 Prand\cf3 ([300, 500, 642], \cf4 inf\cf3 ));\
+\cf4 Pbindef\cf3 (\cf6 \\gp\cf3 , \cf6 \\freq\cf3 , \cf4 Pfunc\cf3 (\{10000.rrand(11000)\}));\
+\cf4 Pbindef\cf3 (\cf6 \\gp\cf3 , \cf6 \\dur\cf3 , \cf4 Pseq\cf3 ([0.8, 0.9, 1.0], \cf4 inf\cf3 ));\
+\cf4 Pbindef\cf3 (\cf6 \\gp\cf3 , \cf6 \\pan\cf3 , \cf4 Prand\cf3 ([-1, 0, 1], \cf4 inf\cf3 ));\
+\cf4 Pbindef\cf3 (\cf6 \\gp\cf3 , \cf6 \\freq\cf3 , \cf4 Pn\cf3 (\cf4 Env\cf3 .linen(1, 1, 0.3, 200)));\
+\cf4 Pbindef\cf3 (\cf6 \\gp\cf3 , \cf6 \\recursionLevel\cf3 , \cf4 Prand\cf3 ([1, 2], \cf4 inf\cf3 ));\
+\cf4 Pbindef\cf3 (\cf6 \\gp\cf3 , \cf6 \\freq\cf3 , \cf4 Pn\cf3 (\cf4 Pgeom\cf3 (1000, 1.25, 4), \cf4 inf\cf3 ));\
+\cf4 Pbindef\cf3 (\cf6 \\gp\cf3 , \cf6 \\freq\cf3 , \cf4 Pn\cf3 (\cf4 Pfunc\cf3 (\{1000.0.rrand(10000.0)\}), \cf4 inf\cf3 ));\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\
+\
+}

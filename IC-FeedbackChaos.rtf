@@ -1,0 +1,257 @@
+{\rtf1\ansi\ansicpg932\cocoartf949\cocoasubrtf330
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red191\green0\blue0;\red0\green0\blue0;\red0\green0\blue191;
+\red96\green96\blue96;\red0\green0\blue191;\red0\green115\blue0;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs36 \cf2 // ================================================\cf3 \
+\cf2 // SuperCollider Workspace for Feedback Chaos Space\cf3 \
+\cf2 // (c) akihiro kubota, 2008\cf3 \
+\cf2 // ================================================\cf3 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 ///////////////////////////////////////////////////////////\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf2 //\cf3 \
+\cf2 // setup\cf3 \
+\cf2 //\cf3 \
+\pard\pardeftab560\li1140\fi-1140\ql\qnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // current window\cf3 \
+(\
+\cf4 Document\cf3 .current.font_(\cf4 Font\cf3 (\cf5 "Monaco"\cf3 , 18), -1);\
+\cf4 Document\cf3 .current.background_(\cf4 Color\cf3 .new255(250, 250, 250, 230));\
+\cf4 Document\cf3 .current.stringColor_(\cf4 Color\cf3 .new255(0, 0, 0, 255));\
+\cf4 Document\cf3 .current.bounds_(\cf4 Rect\cf3 (540, 0, 900, 900));\
+\cf4 Document\cf3 .current.syntaxColorize;\
+\
+\cf2 // listener window\cf3 \
+\cf4 Document\cf3 .listener.title_(\cf5 "post"\cf3 );\
+\cf2 //Document.listener.font_(Font("Monaco", 18), -1);\cf3 \
+\cf4 Document\cf3 .listener.bounds_(\cf4 Rect\cf3 (0, 398, 640, 480));\
+\cf4 Document\cf3 .listener.background_(\cf4 Color\cf3 .new255(255, 255, 255, 255));\
+\cf4 Document\cf3 .listener.stringColor_(\cf4 Color\cf3 .new255(0, 0, 0, 255));\
+\cf4 Document\cf3 .listener.syntaxColorize;\
+\
+\cf2 // logging coding activities\cf3 \
+codeDump = \{ \cf4 arg\cf3  x; x.postln; \cf4 Document\cf3 .listener.syntaxColorize; \};\
+\
+\cf2 // history\cf3 \
+\cf4 History\cf3 .clear; \
+\cf4 History\cf3 .start;\
+\
+\cf2 // boot internal server\cf3 \
+\cf4 Server\cf3 .default = s = \cf4 Server\cf3 .internal;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 s.options.blockSize = 8;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 s.options.numWireBufs = 128;\
+s.options.memSize = 16384;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 s.recSampleFormat = \cf5 "int16"\cf3 ;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 s = \cf4 Server\cf3 .default;\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural
+\cf3 if(not(s.serverRunning), \{s.boot\});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\cf2 // create a proxyspace\cf3 \
+p = \cf4 ProxySpace\cf3 .push(s);\
+p.fadeTime = 3.0;\
+p.clock = \cf4 TempoClock\cf3 .default;\
+\
+\cf2 // TdefEditor\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf2 //t = TdefAllGui(16);\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+(\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf2 // monitor the input/outputs:\cf3 \
+o = \cf4 AudioMeter\cf3 .output([0, 1, 8, 9], s);\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\cf2 // spectrum (freqency analyzer)\cf3 \
+w = \cf4 SCWindow\cf3 .new(\cf5 "spectrum"\cf3 , \cf4 Rect\cf3 (0, 350, 512, 300), border: \cf4 false\cf3 );\
+w.alpha_(0.8);\
+f = \cf4 SCFreqScope\cf3 (w, \cf4 Rect\cf3 (0, 0, 513, 301));\
+f.dbRange_(96);\
+f.freqMode_(1);\
+f.inBus_(0);\
+f.active_(\cf4 true\cf3 );\
+w.onClose_(\{ f.kill \});\
+w.front;\
+\
+\cf2 // waveform (stethoscope)\cf3 \
+v = \cf4 SCWindow\cf3 .new(\cf5 "waveform"\cf3 , \cf4 Rect\cf3 (0, 51, 512, 300), border: \cf4 false\cf3 );\
+v.alpha_(0.8);\
+v.view.decorator = \cf4 FlowLayout\cf3 (v.view.bounds);\
+e = \cf4 Stethoscope\cf3 .new(s, 2, zoom:0.2, view:v.view);\
+v.onClose = \{ e.free \};\
+v.front;\
+)\
+\
+\cf2 // the end\cf3 \
+p.end(30);\
+p.clear.pop;\
+p.free;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 ///////////////////////////////////////////////////////////\cf3 \
+\cf2 //\cf3 \
+\cf2 // feedback chaos\cf3 \
+\cf2 //\cf3 \
+\
+\cf2 // proxies\cf3 \
+(\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 ~in.ar(2);\
+~in.play;\
+~in.vol = 0.0;\
+~out.ar(2);\
+~out.play;\
+~out.vol = 1.0;\
+)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+~out.clear;\
+\cf2 \
+// feedback-chaos\cf3 \
+(\
+~in = \{ \cf4 HPF\cf3 .ar(\cf4 AudioIn\cf3 .ar(1).dup + \cf4 AudioIn\cf3 .ar(2).dup, 300) + \cf4 Impulse\cf3 .ar(2, 0, 0.0).dup + \cf4 SinOsc\cf3 .ar(80, 0, 0.0).dup \};\
+~delayedInput = \{ \cf4 CombN\cf3 .ar(~in.ar, 0.01, [0.1, 0.1].rrand(0.01), [3, 3].rand2) \};\
+~delayedInput = \{ \cf4 PitchShift\cf3 .ar(~in.ar, 0.01, [0.8, 1.2], 0, 0) \};\
+~delayedInput = \{ \cf4 AllpassN\cf3 .ar(~in.ar, 0.01, [0.1, 0.1].rrand(0.01), [3, 3].rand2) \};\
+~delayedInput = \{ \cf4 DelayN\cf3 .ar(~in.ar, 5.0, [rrand(4.0, 5.0), rrand(4.0, 5.0)]) \};\
+~delayedInput = ~in;\
+\
+~q = 0.5;\
+\
+~freq1 = \{ \cf4 LFNoise2\cf3 .kr(rrand(0.1, 0.5), 100, 6000) \};\
+~freq2 = \{ \cf4 LFNoise2\cf3 .kr(rrand(0.1, 0.5), 100, 3000) \};\
+~freq3 = \{ \cf4 LFNoise2\cf3 .kr(rrand(0.1, 0.5), 100, 1000) \};\
+\
+~p1 = \{ \cf4 RHPF\cf3 .ar(~delayedInput.ar, ~freq1.kr, ~q.kr) + \cf4 RLPF\cf3 .ar(~in.ar, ~freq1.kr, ~q.kr) \};\
+~p2 = \{ \cf4 RHPF\cf3 .ar(~p1.ar, ~freq2.kr, ~q.kr) + \cf4 RLPF\cf3 .ar(~delayedInput.ar, ~freq2.kr, ~q.kr) \};\
+~p3 = \{ \cf4 RHPF\cf3 .ar(~p2.ar, ~freq3.kr, ~q.kr) + \cf4 RLPF\cf3 .ar(~delayedInput.ar, ~freq3.kr, ~q.kr) \};\
+\
+~p1Vol = 0.3;\
+~p2Vol = 0.3;\
+~p3Vol = 0.3;\
+\
+~pmix = \{ (~p1.ar * ~p1Vol.kr * \cf4 LFNoise2\cf3 .kr(rrand(0.05, 0.2), 1, 1)) \
+	+ (~p2.ar * ~p2Vol.kr * \cf4 LFNoise1\cf3 .kr(rrand(0.05, 0.2), 1, 1)) \
+	+ (~p3.ar * ~p3Vol.kr * \cf4 LFNoise1\cf3 .kr(rrand(0.05, 0.2), 1, 1)) \};\
+\
+~freqf = \{ \cf4 LFNoise2\cf3 .kr(rrand(0.1, 0.5), 1000, 5000) \};\
+~freqb = \{ \cf4 LFNoise2\cf3 .kr(rrand(0.1, 0.5), 1000, 2000) \};\
+~qf = 0.5;\
+~fbkf = 0.7;\
+~fbk = 0.5;\
+\
+~nl1 = \{ \cf4 RLPF\cf3 .ar(~pmix.ar, ~freqf.kr, ~qf.kr) \};\
+~nl2 = \{ (~nl1.ar * \cf4 LPF\cf3 .ar(~nl1.ar, ~freqb.kr, ~fbkf.kr)).distort \};\
+~nl3 = \{ ~nl2.ar + (~pmix.ar * ~fbk.kr).distort  \};\
+~nl = \{ \cf4 CombN\cf3 .ar(~nl3.ar, 0.1, [0.1, 0.1].rand, [3, 3].rand2, 1, ~nl3.ar) \};\
+\
+~compOut = \{ \cf4 Compander\cf3 .ar(~nl.ar.distort, ~nl.ar, 0.1, 0.1, 1.0, 0.01, 0.01) \};\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 ~compOut = \{ \cf6 Compander\cf0 .ar(~nl.ar.distort, ~nl.ar, 0.5, 1.0, 0.5, 0.01, 0.01) \};\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+~freqm = \{ \cf4 LFNoise2\cf3 .kr(rrand(0.1, 0.5), 1000, 2000) \};\
+~qm = 0.5;\
+~filterdOut = \{ \cf4 RLPF\cf3 .ar(~compOut.ar, ~freqm.kr, ~qm.kr) + \cf4 RHPF\cf3 .ar(~compOut.ar, ~freqm.kr, ~qm.kr) \};\
+~delayedOut = \{ \cf4 DelayN\cf3 .ar(~filterdOut.ar, 5.0, [rrand(4.0, 5.0), rrand(4.0, 5.0)]) \};\
+\cf2 //~limitedOut = \{ Limiter.ar(~delayedOut.ar, 0.5, 0.1) \};\cf3 \
+~limitedOut = \{ \cf4 Normalizer\cf3 .ar(~delayedOut.ar, 0.5, 0.1) \};\
+~limitedOut = \{ \cf4 Normalizer\cf3 .ar(~delayedOut.ar * ~delayedInput.ar, 0.5, 0.1) \};\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 ~limitedOut = \{ \cf6 Normalizer\cf0 .ar(~delayedOut.ar * ~compOut.ar, 0.5, 0.1) \};\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 ~limitedOut = \{ \cf4 Normalizer\cf3 .ar(~delayedOut.ar * (~delayedInput.ar + 0.1), 0.5, 0.1) \};\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 ~limitedOut = \{ \cf6 PitchShift\cf0 .ar(\cf6 Normalizer\cf0 .ar(~delayedOut.ar * (~delayedInput.ar + 0.1), 0.5, 0.1), 0.01, [1.3, 1.3].rrand(0.7), 0.0, 0.0) \};\
+~limitedOut = \{ \cf6 PitchShift\cf0 .ar(\cf6 Normalizer\cf0 .ar(~delayedOut.ar, 0.5, 1.0), 0.01, [1.5, 1.5].rrand(0.5), 0.0, 0.0) \};\
+~limitedOut = \{ \cf6 PitchShift\cf0 .ar(\cf6 Normalizer\cf0 .ar(~delayedOut.ar, 0.5, 0.1), 0.01, \cf6 LFNoise1\cf0 .kr([0.01, 0.011], 0.5, 1.0), 0.0, 0.0) \};\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+~out = \{ \cf4 HPF\cf3 .ar(~limitedOut.ar, 400) \};\
+\
+~out = \{ ~limitedOut.ar + \cf6 Impulse\cf0 .ar(2, 0, 0.9).dup\cf3  \};\
+~out = ~limitedOut.distort;\
+~out = ~limitedOut * [1.0, -1.0];\
+~out = ~limitedOut * [-1.0, -1.0];\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 ~out = \{ \cf6 PitchShift\cf0 .ar(~limitedOut.ar, 0.01, [1.0, 1.0].rrand(0.5), 0.0, 0.0) \};\
+~out = \{ \cf6 PitchShift\cf0 .ar(~limitedOut.ar, 0.01, [0.4, 0.4].rrand(0.5), 0.0, 0.0) \};\
+~out = \{ \cf6 PitchShift\cf0 .ar(~limitedOut.ar, 0.01, \cf6 LFNoise1\cf0 .kr([0.011, 0.01], 0.5, 1.0), 0.0, 0.0) \};\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+~out = \{ \cf4 Pan2\cf3 .ar(\cf4 Mix\cf3 .new(~limitedOut.ar), \cf4 FSinOsc\cf3 .kr(0.1), 1.0) \};\
+~out = \{ \cf4 Pan2\cf3 .ar(\cf4 Mix\cf3 .new(~limitedOut.ar), \cf4 LFNoise1\cf3 .kr(0.1), 1.0) \};\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf0 ~out = \{ \cf6 Pan2\cf0 .ar(\cf6 Mix\cf0 .new(~limitedOut.ar), \cf6 LFPulse\cf0 .kr(0.5, 0, 0.5), 1.0) \};\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+~out = \{ \cf4 Impulse\cf3 .ar([2, 2.001], 0, 1.1) \};\
+\
+==\
+\
+~delayedInput = \{ \cf4 AllpassN\cf3 .ar(~in.ar, 0.1, [0.1, 0.1].rand, [3, 3].rand2) \};\
+\
+~limitedOut = \{ \cf4 Normalizer\cf3 .ar(~delayedOut.ar, 0.5, 0.1) \};\
+\
+~out.add(\{ \cf4 Mix\cf3 .new(\cf4 Pan2\cf3 .ar(~limitedOut.ar, \cf4 SinOsc\cf3 .ar([rrand(800, 1000), rrand(800, 1000)]), 0.5)) \});\
+~out.add(\{ \cf4 Mix\cf3 .new(\cf4 Pan2\cf3 .ar(~limitedOut.ar, \cf4 SinOsc\cf3 .ar([rrand(4000, 6000), rrand(4000, 6000)]), 0.5)) \});\
+~out.add(\{ \cf4 Mix\cf3 .new(\cf4 Pan2\cf3 .ar(~limitedOut.ar, \cf4 SinOsc\cf3 .ar([rrand(8000, 10000), rrand(8000, 10000)]), 0.5)) \});\
+\
+(\
+~freq1 = \{ \cf4 LFNoise1\cf3 .kr(1.0.rand, 1000, 5000) \};\
+~freq2 = \{ \cf4 LFNoise1\cf3 .kr(1.0.rand, 100, 500) \};\
+~freq3 = \{ \cf4 LFNoise1\cf3 .kr(1.0.rand, 50, 100) \};\
+)\
+\
+(\
+~pmix = \{ (~p1.ar * ~p1Vol.kr * \cf4 LFNoise1\cf3 .kr(10.rand, 1, 1)) \
+	+ (~p2.ar * ~p2Vol.kr * \cf4 LFNoise1\cf3 .kr(10.rand, 1, 1)) \
+	+ (~p3.ar * ~p3Vol.kr * \cf4 LFNoise1\cf3 .kr(10.rand, 1, 1)) \};\
+)\
+\
+\cf2 // live GUI\cf3 \
+\cf2 //\cf3 \
+\cf2 // make a GUI window\cf3 \
+(\
+g = \cf4 SCWindow\cf3 (\cf5 "loop control panel"\cf3 , \cf4 Rect\cf3 (20, 380, 440, 470));\
+g.alpha = 0.7;\
+g.front;\
+g.view.decorator = \cf4 FlowLayout\cf3 (g.view.bounds);\
+)\
+\cf2 // make control sliders\cf3 \
+(\
+\cf4 var\cf3  incnt, outcnt, qcnt, f1cnt, f2cnt, f3cnt, p1vcnt, p2vcnt, p3vcnt, ffcnt, fbcnt, qfcnt, fbkfcnt, fbkcnt, fmcnt, qmcnt;\
+incnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "in"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf7 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~in.vol = ez.value; \}, 0.3);\
+outcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "out"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf7 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~out.vol = ez.value; \}, 0.3);\
+qcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "q"\cf3 , \cf4 ControlSpec\cf3 (0, 2, \cf7 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~q = ez.value; \}, 0.5);\
+f1cnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "freq1"\cf3 , \cf4 ControlSpec\cf3 (20, 10000, \cf7 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~freq1 = ez.value; \}, 5000);\
+f2cnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "freq2"\cf3 , \cf4 ControlSpec\cf3 (20, 10000, \cf7 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~freq2 = ez.value; \}, 500);\
+f3cnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "freq3"\cf3 , \cf4 ControlSpec\cf3 (20, 10000, \cf7 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~freq3 = ez.value; \}, 50);\
+p1vcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "vol1"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf7 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~p1Vol = ez.value; \}, 0.3);\
+p2vcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "vol2"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf7 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~p2Vol = ez.value; \}, 0.3);\
+p3vcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "vol3"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf7 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~p3Vol = ez.value; \}, 0.3);\
+ffcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "freqf"\cf3 , \cf4 ControlSpec\cf3 (20, 10000, \cf7 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~freqf = ez.value; \}, 3000);\
+fbcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "freqb"\cf3 , \cf4 ControlSpec\cf3 (20, 10000, \cf7 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~freqb = ez.value; \}, 7000);\
+qfcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "qf"\cf3 , \cf4 ControlSpec\cf3 (0, 2, \cf7 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~qf = ez.value; \}, 0.5);\
+fbkfcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "feedbackf"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf7 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~fbkf = ez.value; \}, 0.5);\
+fbkcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "feedback"\cf3 , \cf4 ControlSpec\cf3 (0, 1, \cf7 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~fbk = ez.value; \}, 0.5);\
+fmcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "freqm"\cf3 , \cf4 ControlSpec\cf3 (20, 10000, \cf7 \\exp\cf3 , 0), \{\cf4 |ez|\cf3  ~freqm = ez.value; \}, 1000);\
+qmcnt = \cf4 EZSlider\cf3 (g, 400 @ 24, \cf5 "qm"\cf3 , \cf4 ControlSpec\cf3 (0, 2, \cf7 \\lin\cf3 , 0), \{\cf4 |ez|\cf3  ~qm = ez.value; \}, 0.5);\
+)\
+\
+\
+}

@@ -1,0 +1,1214 @@
+{\rtf1\mac\ansicpg10000\cocoartf824\cocoasubrtf350
+{\fonttbl\f0\fnil\fcharset77 Monaco;\f1\fnil\fcharset78 Osaka-Mono;\f2\fswiss\fcharset77 Helvetica;
+}
+{\colortbl;\red255\green255\blue255;\red191\green0\blue0;\red0\green0\blue0;\red0\green0\blue191;
+\red96\green96\blue96;\red0\green115\blue0;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0\fs36 \cf2 //\cf3 \
+\cf2 // SC3 Live Coding Performance Template   (c) akihiro kubota, 2006\cf3 \
+\cf2 //\cf3 \
+\
+\cf2 // prepare window\cf3 \
+(\
+d = \cf4 Document\cf3 .listener;\
+d.title_(\cf5 "post"\cf3 );\
+\cf2 // d.title_("post + log");\cf3 \
+d.background_(\cf4 Color\cf3 .new255(50, 60, 70, 245));\
+d.stringColor_(\cf4 Color\cf3 .new255(245, 255, 255, 145));\
+\cf2 // d.background_(Color.new255(245, 245, 0, 245));\cf3 \
+\cf2 // d.stringColor_(Color.new255(30, 30, 30, 255));\cf3 \
+\cf2 // d.font_(Font("Monaco", 12), -1);\cf3 \
+\cf2 // codeDump = \{ arg x; d.string = d.string ++ x ++ nl; \};\cf3 \
+codeDump = \{ \cf4 arg\cf3  x; x.postln; \};\
+\cf4 Document\cf3 .current.background_(\cf4 Color\cf3 .new255(250, 250, 250, 255));\
+\cf4 Document\cf3 .current.stringColor_(\cf4 Color\cf3 .new255(0, 0, 0, 255));\
+\cf4 Document\cf3 .current.syntaxColorize;\
+)\
+\
+codeDump = \cf4 nil\cf3 ;\
+\
+\cf2 // boot internal server\cf3 \
+(\
+\cf4 Server\cf3 .default = \cf4 Server\cf3 .internal;\
+\cf2 // Server.default.options.numWireBufs = 128;\cf3 \
+\cf4 Server\cf3 .default.options.memSize = 32768;\
+s = \cf4 Server\cf3 .default;\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural
+\cf3 if(not(s.serverRunning), \{s.boot\});\
+)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\cf2 // create a proxyspace\cf3 \
+(\
+p = \cf4 ProxySpace\cf3 .push(s);\
+p.fadeTime = 0.1;\
+p.clock = \cf4 TempoClock\cf3 .default;\
+)\
+\
+\cf4 TempoClock\cf3 .default.tempo = 1;\
+p.clock.tempo = 1.0;\
+\
+\
+\cf2 // the end\cf3 \
+p.end(30); \
+p.clear.pop;\
+p.free;\
+\
+\cf2 /// spectrum (freqency analyzer)\cf3 \
+(\
+w = \cf4 SCWindow\cf3 (\cf5 "spectrum"\cf3 , \cf4 Rect\cf3 (0, 0, 511, 300));\
+w.alpha_(0.9);\
+f = \cf4 SCFreqScope\cf3 (w, w.view.bounds);\
+f.dbRange_(96);\
+f.freqMode_(0);\
+f.inBus_(0);\
+f.active_(\cf4 true\cf3 );\
+w.onClose_(\{ f.kill \});  \cf2 // you must have this\cf3 \
+w.front;\
+)\
+\
+\cf4 FreqScope\cf3 .new(512, 200, 0);\
+\
+f.active_(\cf4 true\cf3 );\
+f.active_(\cf4 false\cf3 );\
+\
+\cf2 // waveform (stethoscope)\cf3 \
+(\
+w = \cf4 SCWindow\cf3 .new(\cf5 "waveform"\cf3 , \cf4 Rect\cf3 (322, 10, 212, 212));\
+w.alpha_(0.9);\
+w.view.decorator = \cf4 FlowLayout\cf3 (w.view.bounds);\
+c = \cf4 Stethoscope\cf3 .new(s, 2, zoom:0.1, view:w.view);\
+w.onClose = \{ c.free \};\
+w.front;\
+)\
+\
+\cf2 // class browser\cf3 \
+\cf4 UGen\cf3 .browse
+\f1 \'81\'47\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0 \cf4 Object\cf3 .browse;\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // current environment\cf3 \
+currentEnvironment.postln;\
+p;\
+\
+\cf2 // define output proxies 	\cf3 \
+(\
+~out.ar(2);\
+~out.play(0, 2);\
+~out.vol = 1.0;\
+\cf2 //~out.scope;\cf3 \
+)\
+\
+~out.stop;\
+\
+\cf2 // digital sound (digital just temperament)\cf3 \
+\
+\cf2 // points\cf3 \
+~out = \{ \cf4 Impulse\cf3 .ar(2.dup, 0, 0.9, 0) \};\
+~out = \{ \cf4 Impulse\cf3 .ar(11045.dup, 0, 0.5, 0) \};\
+~out = nil;\
+\cf2 \
+// line\cf3 \
+~out = \{ \cf4 SinOsc\cf3 .ar(8822.dup, 0, 0.5) \};\
+\
+\cf2 // plane\cf3 \
+~out = \{ \cf4 WhiteNoise\cf3 .ar(0.1.dup) \};\
+\
+\
+\
+\cf2 // chaotic ugens\cf3 \
+~out = ~chaos;\
+~out = \cf4 nil\cf3 ;\
+\
+\
+\cf2 // chaotic noise\cf3 \
+\
+\cf2 // henon\cf3 \
+~chaos = \{ \cf4 HenonN\cf3 .ar(\cf4 SampleRate\cf3 .ir, 1.4, 0.3, mul:0.1) ! 2 \};\
+\
+\cf2 // waveforms (time domain)\cf3 \
+\{ \cf4 HenonN\cf3 .ar(\cf4 SampleRate\cf3 .ir, 1.4, 0.3) \}.plot(0.002);\
+\
+\cf2 // interaction (interactive listening = heuristic approach)\cf3 \
+~chaos = \{ \cf4 HenonN\cf3 .ar(\cf4 SampleRate\cf3 .ir * \cf4 MouseX\cf3 .kr(0.0, 1.0), 1.4, 0.3, mul:0.1) ! 2 \};\
+\
+~chaos = \{ \cf4 HenonN\cf3 .ar(\cf4 SampleRate\cf3 .ir, \cf4 MouseX\cf3 .kr(1, 1.4), \cf4 MouseY\cf3 .kr(0.2, 0.3), mul:0.1) ! 2 \};\
+\
+\cf2 // modulation\cf3 \
+~chaos = \{ \cf4 HenonN\cf3 .ar(\cf4 SampleRate\cf3 .ir * \cf4 HenonN\cf3 .ar(\cf4 SampleRate\cf3 .ir), 1.3, 0.3, mul:0.1) ! 2 \};\
+~chaos = \{ \cf4 HenonN\cf3 .ar(\cf4 SampleRate\cf3 .ir, \cf4 HenonN\cf3 .ar(\cf4 SampleRate\cf3 .ir, add:1.3), 0.3, mul:0.1) ! 2 \};\
+~chaos = \{ \cf4 HenonN\cf3 .ar(\cf4 SampleRate\cf3 .ir, 1.4, \cf4 HenonN\cf3 .ar(\cf4 SampleRate\cf3 .ir, add:0.2), mul:0.1) ! 2 \};\
+\
+\
+\cf2 // parametric feedback\cf3 \
+~chaos = \{ \cf4 HenonN\cf3 .ar(\cf4 SampleRate\cf3 .ir * ~chaos.ar.abs, 1.4, 0.3, mul:0.1).dup \};\
+~chaos = \{ \cf4 HenonN\cf3 .ar(\cf4 SampleRate\cf3 .ir, 1.2 + ~chaos.ar, 0.2 + ~chaos.ar) * 0.1 ! 2 \};\
+\
+\
+\
+\cf2 // lorentz\cf3 \
+~chaos = \{ \cf4 LorenzL\cf3 .ar(\cf4 SampleRate\cf3 .ir, mul:0.1) ! 2 \};\
+\{ \cf4 LorenzL\cf3 .ar(\cf4 SampleRate\cf3 .ir) \}.plot(0.02);\
+\
+~chaos = \{ \cf4 SinOsc\cf3 .ar(\cf4 LorenzL\cf3 .ar(\cf4 SampleRate\cf3 .ir) * 10000 + 10000, mul:0.1) ! 2 \};\
+~chaos = \{ \cf4 Impulse\cf3 .ar(\cf4 LorenzL\cf3 .ar(\cf4 SampleRate\cf3 .ir) * 10000 + 10000, mul:0.2) ! 2 \};\
+\
+\
+\cf2 // quadratic map\cf3 \
+~chaos = \{ \cf4 QuadL\cf3 .ar(\cf4 SampleRate\cf3 .ir, 1.0, -1, -0.75, mul:0.1) ! 2 \};\
+~chaos = \{ \cf4 QuadL\cf3 .ar(\cf4 SampleRate\cf3 .ir, \cf4 MouseX\cf3 .kr(0.9, 1.1), -1, -0.75, mul:0.1) ! 2 \};\
+\
+\
+\cf2 // standard map\cf3 \
+~chaos = \{ \cf4 StandardL\cf3 .ar(\cf4 SampleRate\cf3 .ir, 1.0, mul:0.1) ! 2 \};\
+\{ \cf4 StandardL\cf3 .ar(\cf4 SampleRate\cf3 .ir, 1.0) \}.plot(0.01);\
+\
+~chaos = \{ \cf4 StandardL\cf3 .ar(\cf4 SampleRate\cf3 .ir, \cf4 MouseX\cf3 .kr(0.8, 1.2), mul:0.1) ! 2 \};\
+\
+~chaos = \{ \cf4 StandardL\cf3 .ar(\cf4 SampleRate\cf3 .ir * \cf4 StandardL\cf3 .ar(\cf4 SampleRate\cf3 .ir), \cf4 MouseX\cf3 .kr(0.8, 1.2), mul:0.1) ! 2 \};\
+\
+~chaos = \{ \cf4 StandardL\cf3 .ar(\cf4 SampleRate\cf3 .ir * (~chaos.ar.abs + 0.9), \cf4 MouseX\cf3 .kr(0, 1.5), mul:0.1) ! 2 \};\
+\
+\
+\
+\cf2 // feedback sine with chaotic phase indexing\cf3 \
+\
+	x\sub n+1\nosupersub  = sin(im*y\sub n\nosupersub  + fb*x\sub n\nosupersub )\
+	y\sub n+1\nosupersub  = (ay\sub n\nosupersub  + c) % 2pi\
+\
+~chaos = \{ \cf4 FBSineL\cf3 .ar(\cf4 SampleRate\cf3 .ir, 1, 0, 1, 1, mul:0.1) ! 2\};\
+~chaos = \{ \cf4 FBSineL\cf3 .ar(\cf4 SampleRate\cf3 .ir, 1, 2, 1, 1, mul:0.1) ! 2\};\
+~chaos = \{ \cf4 FBSineL\cf3 .ar(\cf4 SampleRate\cf3 .ir, 1, \cf4 MouseX\cf3 .kr(0, 2), 1, 1, mul:0.1) ! 2\};\
+\
+\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 \
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 \
+\cf2 //\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // discrete dynamical systems\cf3 \
+\cf2 //\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f2\fs24 \cf0 {{\NeXTGraphic Pasted Graphic.tiff \width6600 \height2160
+}¬}\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs36 \cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\
+\cf2 // logistic map \cf3 \
+~a.ar(2);\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 ~a = [3.7, 3.7];\
+~chaos = \{ \cf4 QuadN\cf3 .ar(\cf4 SampleRate\cf3 .ir, ~a.ar.neg, ~a.ar, 0, [1.0, 1.0].rand) \};\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // windows\cf3 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f2\fs24 \cf0 {{\NeXTGraphic LogisticEquationBifurcation_900.gif \width11060 \height6820
+}¬}\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs36 \cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 ~a = \{ \cf4 LFNoise1\cf3 .ar(10, 0.01, 3.58).dup \};\
+~a = \{ \cf4 LFNoise1\cf3 .ar(10, 0.01, 3.64).dup \};\
+~a = \{ \cf4 LFNoise1\cf3 .ar(10, 0.01, 3.75).dup \};\
+~a = \{ \cf4 LFNoise1\cf3 .ar(10, 0.014, 3.844).dup \};\
+\
+~a = \{ [\cf4 LFNoise1\cf3 .ar(100, 0.01, 3.58), \cf4 LFNoise1\cf3 .ar(100, 0.01, 3.58)] \};\
+~a = \{ [\cf4 LFNoise1\cf3 .ar(100, 0.01, 3.64), \cf4 LFNoise1\cf3 .ar(100, 0.01, 3.64)] \};\
+~a = \{ [\cf4 LFNoise1\cf3 .ar(100, 0.01, 3.75), \cf4 LFNoise1\cf3 .ar(100, 0.01, 3.75)] \};\
+~a = \{ [\cf4 LFNoise1\cf3 .ar(100, 0.014, 3.844), \cf4 LFNoise1\cf3 .ar(100, 0.014, 3.844)] \};\
+\
+~a = \{ ~chaos.ar/30 + 3.58 \};\
+\
+\
+\
+~chaos = \{ \cf4 QuadN\cf3 .ar(\cf4 SampleRate\cf3 .ir - (~chaos.ar.abs * 1000), ~a.ar.neg, ~a.ar, 0, [1.0, 1.0].rand) \};\
+\
+~chaos = \{ \cf4 QuadN\cf3 .ar(\cf4 SampleRate\cf3 .ir - 1000, ~a.ar.neg, ~a.ar, 0, [1.0, 1.0].rand) * \cf4 Impulse\cf3 .ar(\cf4 LFNoise1\cf3 .ar(1.0.rand, 10, 11025)).dup \};\
+\
+~chaos = \{ \cf4 QuadN\cf3 .ar(\cf4 SampleRate\cf3 .ir - (~chaos.ar.abs * 1000), ~a.ar.neg, ~a.ar, 0, [1.0, 1.0].rand) * \cf4 Impulse\cf3 .ar(11050).dup \};\
+\
+~chaos = \{ \cf4 QuadN\cf3 .ar(\cf4 SampleRate\cf3 .ir, ~a.ar.neg, ~a.ar, 0, [1.0, 1.0].rand) * \cf4 Impulse\cf3 .ar(11000).dup * \cf4 SinOsc\cf3 .ar(11025 + (~chaos.ar * 1000)).dup \};\
+\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // connected logistic map\cf3 \
+\
+~a.clear;\
+~a.kr(1);\
+\
+~d.kr(1);\
+~d1.ar(1);\
+~d2.ar(1);\
+\
+~out1.ar(1);\
+~out2.ar(1);\
+\
+~d1 = ~d * (~out2 - ~out1);\
+~d2 = ~d * (~out1 - ~out2);\
+\
+~a = 3.59;\
+~d = 0.1;\
+\
+~out1 = \{ \cf4 QuadL\cf3 .ar(\cf4 SampleRate\cf3 .ir, ~a.kr.neg, ~a.kr, ~d1.ar, 1.0.rand) \};\
+~out2 = \{ \cf4 QuadL\cf3 .ar(\cf4 SampleRate\cf3 .ir, ~a.kr.neg, ~a.kr, ~d2.ar, 1.0.rand) \};\
+\
+~out = [~out1, ~out2] * 0.5;\
+~out = [~out1 - ~out2, ~out2 - ~out1] * 0.5;\
+\
+~out.play;\
+~out.scope;\
+\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 , \{ loop( \{ ~a = rrand(3.58, 3.62); 10.wait \} )\});\
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 ).play;\
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 ).stop;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\cf4 UGen\cf3 .dumpSubclassList\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 \
+\
+\cf2 // CML\cf3 \
+\
+~a = 1.7;\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 ~eps.kr(1);\
+~eps = 0.01;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 \
+~out = \{ \cf4 QuadL\cf3 .ar(\cf4 SampleRate\cf3 .ir, ~a.kr.neg, 0, 1, [1.0.rand, 1.0.rand], 0.5) \};\
+\
+~out1 = \{ \cf4 QuadL\cf3 .ar(\cf4 SampleRate\cf3 .ir, (1 - ~eps.kr) * ~a.kr.neg, 0, 1 - ~eps.kr + (~eps.kr * ~out2.ar), 1.0.rand) \};\
+~out2 = \{ \cf4 QuadL\cf3 .ar(\cf4 SampleRate\cf3 .ir, (1 - ~eps.kr) * ~a.kr.neg, 0, 1 - ~eps.kr + (~eps.kr * ~out1.ar), 1.0.rand) \};\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 ~out = [~out1, ~out2] * 0.5;\
+~out.rebuild;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\
+\
+\cf2 // coupled map\cf3 \
+(\
+\cf4 var\cf3  x, y, fx, fy, a, b, c, d, i, imax, sum, diff;\
+# x, y = [1.0.rand, 1.0.rand];\
+# a, b = [3.8, 3.8];\
+d = 0.268;\
+c = 1 / ( 1 + (2 * d));\
+i = 0;\
+imax = 200;\
+sum = \cf4 Array\cf3 .fill(imax, 0);\
+diff = \cf4 Array\cf3 .fill(imax, 0);\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 , \{\
+	imax.do (\{\
+		fx = a * (1 - x) * x;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		fy = b * (1 - y) * y;\
+		x = c * (((1 + d) * fx) + (d * fy));\
+		y = c * ((d * fx) + ((1 + d) * fy));\
+		x.post; \cf5 ", "\cf3 .post; y.post; \cf5 ", "\cf3 .post; ((x+y)/2).post; \cf5 ", "\cf3 .post; (x-y).postln;\
+		sum.put(i, (x+y)/2);\
+		diff.put(i, x-y);\
+		i = i + 1;\
+		0.1.wait;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 	\});\
+	\{ sum.plot(\cf6 \\sum\cf3 ) \}.defer;\
+	\{ diff.plot(\cf6 \\diff\cf3 ) \}.defer;\
+\});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+\cf2 // generalized sychronization\cf3 \
+(\
+\cf4 var\cf3  x, y, z, fx, fy, fz, a, b, c, d1, d2, dt, dc, i, imax, diffxy, diffxz;\
+# x, y, z = [1.0.rand, 1.0.rand, 1.0.rand];\
+# a, b, c = [4, 4, 4];\
+d1 = 0.5;\
+d2 = 0.1;\
+dt = 1 + (2 * d1) + d2;\
+dc = 1 / ((1 + d2) * dt);\
+i = 0;\
+imax = 200;\
+diffxy = \cf4 Array\cf3 .fill(imax, 0);\
+diffxz = \cf4 Array\cf3 .fill(imax, 0);\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 , \{\
+	imax.do (\{\
+		fx = a * (1 - x) * x;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		fy = b * (1 - y) * y;\
+		fz = c * (1 - z) * z;\
+		x = dc * (((dt - d1) * fx) + (d1 * fy));\
+		y = dc * ((d1 * fx) + ((dt - d1) * fy));\
+		z = fz;\
+		x.post; \cf5 ", "\cf3 .post; y.post; \cf5 ", "\cf3 .post; z.post; \cf5 ", "\cf3 .post; (x-y).post; \cf5 ", "\cf3 .post; (x-z).postln;\
+		diffxy.put(i, x-y);\
+		diffxz.put(i, x-z);\
+		i = i + 1;\
+		0.1.wait;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 	\});\
+	\{ diffxy.plot(\cf5 "x-y"\cf3 ) \}.defer;\
+	\{ diffxz.plot(\cf5 "x-z"\cf3 ) \}.defer;\
+\});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+(\
+~out = \{\cf4 arg\cf3  base = 5000, level = 0.5;\
+		\cf4 var\cf3  farray, aarray, parray;\
+		farray = \cf4 Control\cf3 .names(\cf6 \\farray\cf3 ).kr(\cf4 Array\cf3 .fill(10, 0));\
+		aarray = \cf4 Control\cf3 .names(\cf6 \\aarray\cf3 ).kr(\cf4 Array\cf3 .fill(10, 0));\
+		parray = \cf4 Control\cf3 .names(\cf6 \\parray\cf3 ).kr(\cf4 Array\cf3 .fill(10, 0));\
+		\cf4 Mix\cf3 .new(\
+			\cf4 Pan2\cf3 .ar(\
+				\cf4 Impulse\cf3 .ar(\
+					farray + base, 0.0, aarray, 0.0),\
+				parray, level))\};\
+)\
+\
+~out.play;\
+p.fadeTime = 1;\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f2\fs24 \cf0 {{\NeXTGraphic cmlgcmeq.png \width10520 \height1960
+}¬}\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs36 \cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\cf2 // coupled map lattice (without sounds)\cf3 \
+(\
+\cf4 var\cf3  n, x, fx, a, eps, sigma, i, imax, xplot, sigmaplot;\
+n = 10;\
+x = \cf4 Array\cf3 .rand(n, 0.0, 1.0);\
+fx = \cf4 Array\cf3 .fill(n, 0);\
+a = 1.9;\
+eps = 0.2;\
+sigma = \cf4 Array\cf3 .fill(n, 0);\
+i = 0;\
+imax = 100;\
+xplot = \cf4 Array\cf3 .fill(imax, 0);\
+sigmaplot = \cf4 Array\cf3 .fill(imax, 0);\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 , \{\
+	imax.do (\{\
+		fx = 1 - (a * x.squared);\
+		n.do(\{ \cf4 arg\cf3  item; sigma.put(item, (fx.wrapAt(item-1) + fx.wrapAt(item+1))/2) \});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		x = ((1 - eps) * fx) + (eps * sigma);\
+		x.at(0).post; \cf5 ", "\cf3 .post; sigma.at(0).postln;\
+		xplot.put(i, x.at(0));\
+		sigmaplot.put(i, sigma.at(0));\
+		i = i + 1;\
+		0.1.wait;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 	\});\
+	\{ xplot.plot(\cf5 "x(0)"\cf3 ) \}.defer;\
+	\{ sigmaplot.plot(\cf5 "sigma(0)"\cf3 ) \}.defer;\
+\});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+\cf2 // globally coupled lattice (without sounds)\cf3 \
+(\
+\cf4 var\cf3  n, x, fx, a, eps, sigma, i, imax, xplot, sigmaplot;\
+n = 10;\
+x = \cf4 Array\cf3 .rand(n, 0.0, 1.0);\
+fx = \cf4 Array\cf3 .fill(n, 0);\
+a = \cf4 Array\cf3 .fill(n, 1.7);\
+eps = \cf4 Array\cf3 .fill(n, 0.1);\
+sigma = 0;\
+i = 0;\
+imax = 100;\
+xplot = \cf4 Array\cf3 .fill(imax, 0);\
+sigmaplot = \cf4 Array\cf3 .fill(imax, 0);\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 , \{\
+	imax.do (\{\
+		fx = 1 - (a * x.squared);\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		sigma = fx.sum / n;\
+		x = ((1 - eps) * fx) + (eps * sigma);\
+		x.at(0).post; \cf5 ", "\cf3 .post; sigma.postln;\
+		xplot.put(i, x.at(0));\
+		sigmaplot.put(i, sigma);\
+		i = i + 1;\
+		0.1.wait;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 	\});\
+	\{ xplot.plot(\cf5 "x(0)"\cf3 ) \}.defer;\
+	\{ sigmaplot.plot(\cf5 "sigma"\cf3 ) \}.defer;\
+\});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+\
+\
+\cf2 // coupled map lattice (with sounds)\cf3 \
+(\
+\cf4 var\cf3  n, x, fx, sigma, pan, i, imax, xplot, sigmaplot;\
+n = 10;\
+x = \cf4 Array\cf3 .rand(n, 0.0, 1.0);\
+fx = \cf4 Array\cf3 .fill(n, 0);\
+sigma = \cf4 Array\cf3 .fill(n, 0);\
+pan = \cf4 Array\cf3 .rand(n, -1.0, 1.0);\
+i = 0;\
+imax = 100;\
+xplot = \cf4 Array\cf3 .fill(imax, 0);\
+sigmaplot = \cf4 Array\cf3 .fill(imax, 0);\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 , \{\
+	\cf4 var\cf3  a, eps;\
+	a = 1.9;\
+	eps = 0.2;\
+	imax.do (\{\
+		fx = 1 - (a * x.squared);\
+		n.do(\{ \cf4 arg\cf3  item; sigma.put(item, (fx.wrapAt(item-1) + fx.wrapAt(item+1))/2) \});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		x = ((1 - eps) * fx) + (eps * sigma);\
+		x.at(0).post; \cf5 ", "\cf3 .post; sigma.at(0).postln;\
+		~out.setn(\cf6 \\farray\cf3 , x * 100, \cf6 \\aarray\cf3 , sigma * 0.1, \cf6 \\parray\cf3 , pan).rebuild;\
+		xplot.put(i, x.at(0));\
+		sigmaplot.put(i, sigma.at(0));\
+		i = i + 1;\
+		4.wait;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 	\});\
+	\{ xplot.plot(\cf5 "x(0)"\cf3 ) \}.defer;\
+	\{ sigmaplot.plot(\cf5 "sigma(0)"\cf3 ) \}.defer;\
+\});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 ).play;\
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 ).stop;\
+\
+p.fadeTime = 10;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 ~out.play;\
+~out.scope;\
+\
+\cf2 // globally coupled lattice (with sounds)\cf3 \
+(\
+\cf4 var\cf3  n, x, fx, sigma, pan, i, imax, xplot, sigmaplot;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 a = 1.6;\
+g = rrand(0.05, 0.3);\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 n = 10;\
+x = \cf4 Array\cf3 .rand(n, 0.0, 1.0);\
+fx = \cf4 Array\cf3 .fill(n, 0);\
+sigma = 0;\
+pan = \cf4 Array\cf3 .rand(n, -1.0, 1.0);\
+i = 0;\
+imax = 100;\
+xplot = \cf4 Array\cf3 .fill(imax, 0);\
+sigmaplot = \cf4 Array\cf3 .fill(imax, 0);\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 , \{\
+	imax.do (\{\
+		a = 1.6;\
+		g = rrand(0.05, 0.3);\
+		fx = 1 - (a.postln * x.squared);\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		sigma = fx.sum / n;\
+		x = ((1 - g.postln) * fx) + (g * sigma);\
+		x.at(0).post; \cf5 ", "\cf3 .post; sigma.postln;\
+		~out.setn(\cf6 \\farray\cf3 , x * 100, \cf6 \\aarray\cf3 , \cf4 Array\cf3 .fill(n, 0.1), \cf6 \\parray\cf3 , pan).rebuild;\
+		xplot.put(i, x.at(0));\
+		sigmaplot.put(i, sigma);\
+		i = i + 1;\
+		4.wait;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 	\});\
+	\{ xplot.plot(\cf5 "x(0)"\cf3 ) \}.defer;\
+	\{ sigmaplot.plot(\cf5 "sigma"\cf3 ) \}.defer;\
+\});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+a = 1.95;\
+g = 0.5;\
+\
+\cf2 // globally coupled oscillators\cf3 \
+\
+~a.ar(1);\
+~e.ar(1);\
+~g.ar(1);\
+~out1.ar(1);\
+~out2.ar(1);\
+\
+~a = -1.9;\
+~e = 0.14;\
+~a = \{ \cf4 LFNoise1\cf3 .ar(10, 0.1, -1.7) \};\
+~e = \{ \cf4 LFNoise1\cf3 .ar(10, 0.01, 0.10) \};\
+~g = (~out1 + ~out2 + ~out3) / 3;\
+\
+~out1 = \{ \cf4 QuadC\cf3 .ar(\cf4 SampleRate\cf3 .ir, ~a.ar * (1 - ~e.ar), 0, (1 - ~e.ar) + (~e.ar * ~g.ar), 1.0.rand, 0.3) \};\
+~out2 = \{ \cf4 QuadC\cf3 .ar(\cf4 SampleRate\cf3 .ir, ~a.ar * (1 - ~e.ar), 0, (1 - ~e.ar) + (~e.ar * ~g.ar), 1.0.rand, 0.3) \};\
+~out3 = \{ \cf4 QuadC\cf3 .ar(\cf4 SampleRate\cf3 .ir, ~a.ar * (1 - ~e.ar), 0, (1 - ~e.ar) + (~e.ar * ~g.ar), 1.0.rand, 0.3) \};\
+~out3 = \{ \cf4 SinOsc\cf3 .ar(\cf4 SampleRate\cf3 .ir/2, 0, 0.1) \};\
+\
+~out = [~out1 - ~out3, ~out2 - ~out3];\
+~out.play;\
+~out.scope;\
+\
+\cf2 // standard map oscillators\cf3 \
+\
+~k.ar(1);\
+~k = 0.3;\
+~k = \{ \cf4 LFNoise1\cf3 .ar(10, 0.01, 0.3) \};\
+\
+~out = \{ \cf4 SinOsc\cf3 .ar(0, \cf4 StandardL\cf3 .ar(\cf4 SampleRate\cf3 .ir, ~k.ar, [2pi, 2pi].rand, [2pi, 2pi].rand), 0.3) \};\
+~out = \{ \cf4 StandardL\cf3 .ar(\cf4 SampleRate\cf3 .ir, ~k.ar, [2pi, 2pi].rand, [2pi, 2pi].rand.postln, 0.2) \};\
+\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 p.fadeTime = 0.01;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 , \{ loop( \{ ~out.rebuild; 10.wait \} )\});\
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 , \{ loop( \{ ~k = rrand(1.0, 1.5); 10.wait \} )\});\
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 ).play;\
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 ).stop;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\
+\cf2 // connected lorentz\cf3 \
+\
+~g1.ar(1);\
+~g2.ar(1);\
+~k = 10;\
+~k = \{ \cf4 LFNoise1\cf3 .ar(10, 1, 9) \};\
+\
+~g1 = ~k * (~out2 - ~out1);\
+~g2 = ~k * (~out1 - ~out2);\
+\
+~g1 = 0;\
+~g2 = 0;\
+\
+~out1 = \{ \cf4 LorenzL\cf3 .ar(\cf4 SampleRate\cf3 .ir, 10, 28, 8/3, 0.05, 0.1.rand2, 0.1.rand2, 0.1.rand2, 1, ~g1.ar * 0.05) \};\
+~out2 = \{ \cf4 LorenzL\cf3 .ar(\cf4 SampleRate\cf3 .ir, 10, 28, 8/3, 0.05, 0.1.rand2, 0.1.rand2, 0.1.rand2, 1, ~g2.ar * 0.05) \};\
+~out = [~out1, ~out2] * 0.1;\
+~out = [~out1 - ~out2, ~out1 - ~out2] * 0.05;\
+\
+\cf2 // connected lorentz\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f2\fs24 \cf0 {{\NeXTGraphic Pasted Graphic 4.tiff \width6840 \height3040
+}¬}\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs36 \cf3 \
+(\cf4 Pr\cf3 , r, b) = (10, 28, 8/3
+\f1 \'81\'6a\
+\
+\
+
+\f0 \cf2 // x-connection\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 (\
+\cf4 var\cf3  x = 0.1.rand, y = 0, z = 0, x0, y0, z0;\
+\cf4 var\cf3  u = 0.1.rand, v = 0, w = 0, u0, v0, w0;\
+\cf4 var\cf3  pr = 10, r = 28, b = 8/3, g = 3, dt = 0.02, i = 0, imax = 200;\
+\cf4 var\cf3  diff = \cf4 Array\cf3 .fill(imax, 0);\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 , \{\
+	imax.do (\{\
+		x0 = ((pr * (y - x)) + (g * (u - x))) * dt + x;\
+		y0 = ((x * (r - z)) - y) * dt + y;\
+		z0 = ((x * y) - (b * z)) * dt + z;\
+		x = x0;\
+		y = y0;\
+		z = z0;\
+		u0 = ((pr * (v - u)) + (g * (x - u))) * dt + u;\
+		v0 = ((u * (r - w)) - v) * dt + v;\
+		w0 = ((u * v) - (b * w)) * dt + w;\
+		u = u0;\
+		v = v0;\
+		w = w0;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		(x-u).post; \cf5 ", "\cf3 .post; (y-v).post; \cf5 ", "\cf3 .post; (z-w).postln;\
+		diff.put(i, x-u);\
+		i = i + 1;\
+		0.1.wait;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 	\});\
+	\{ diff.plot(\cf5 "diff"\cf3 ) \}.defer;\
+\})\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf2 // xyz-connection\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 (\
+\cf4 var\cf3  x = 0.1.rand, y = 0, z = 0, x0, y0, z0;\
+\cf4 var\cf3  u = 0.1.rand, v = 0, w = 0, u0, v0, w0;\
+\cf4 var\cf3  pr = 10, r = 28, b = 8/3, g = 0.4, dt = 0.02, i = 0, imax = 500;\
+\cf4 var\cf3  diff = \cf4 Array\cf3 .fill(imax, 0);\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 , \{\
+	imax.do (\{\
+		x0 = ((pr * (y - x)) + (g * (u - x))) * dt + x;\
+		y0 = ((x * (r - z)) - y + (g * (v - y))) * dt + y;\
+		z0 = ((x * y) - (b * z) + (g * (w - z))) * dt + z;\
+		x = x0;\
+		y = y0;\
+		z = z0;\
+		u0 = ((pr * (v - u)) + (g * (x - u))) * dt + u;\
+		v0 = ((u * (r - w)) - v + (g * (y - v))) * dt + v;\
+		w0 = ((u * v) - (b * w) + (g * (z - w))) * dt + w;\
+		u = u0;\
+		v = v0;\
+		w = w0;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		(x-u).post; \cf5 ", "\cf3 .post; (y-v).post; \cf5 ", "\cf3 .post; (z-w).postln;\
+		diff.put(i, x-u);\
+		i = i + 1;\
+		0.1.wait;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 	\});\
+	\{ diff.plot(\cf5 "diff"\cf3 ) \}.defer;\
+\})\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 ).play;\
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 ).stop;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\
+\cf2 // connected rossler\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f2\fs24 \cf0 {{\NeXTGraphic Pasted Graphic 3.tiff \width6160 \height3260
+}¬}\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs36 \cf3 \
+\pard\pardeftab720\sa280\ql\qnatural
+\cf3 \
+(a, b, c) = (0.344, 0.4, 4.5)\
+(a, b, c) = (0.2, 0.2, 5.0)\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 // without plot (x-connected)\cf3 \
+(\
+\cf4 var\cf3  x = 1.0.rand, y = 1.0.rand, z = 1.0.rand, x0, y0, z0;\
+\cf4 var\cf3  u = 1.0.rand, v = 1.0.rand, w = 1.0.rand, u0, v0, w0;\
+\cf2 //var a = 0.344, b = 0.4, c = 4.5;\cf3 \
+\cf4 var\cf3  a = 0.2, b = 0.2, c = 5.0;\
+\cf4 var\cf3  g = 3, dt = 0.05, run = \cf4 true\cf3 ;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 , \{\
+	while \{ run \} \{\
+		x0 = ((-1 * (y + z)) + (g * (u - x))) * dt + x;\
+		y0 = (x + (a * y)) * dt + y;\
+		z0 = (b + (z * (x - c))) * dt + z;\
+		x = x0;\
+		y = y0;\
+		z = z0;\
+		u0 = ((-1 * (v + w)) + (g * (x - u))) * dt + u;\
+		v0 = (u + (a * v)) * dt + v;\
+		w0 = (b + (w * (u - c))) * dt + w;\
+		u = u0;\
+		v = v0;\
+		w = w0;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 //		(x-u).post; ", ".post; (y-v).post; ", ".post; (z-w).postln;\cf3 \
+		x.post; \cf5 ", "\cf3 .post; y.post; \cf5 ", "\cf3 .post; z.postln;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 		if( z.abs > 1000, \{ run = \cf4 false\cf3 ; \});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		0.05.wait;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 	\}\
+\})\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+\cf2 // without plot (z-connected)\cf3 \
+(\
+\cf4 var\cf3  x = 1.0.rand, y = 1.0.rand, z = 1.0.rand, x0, y0, z0;\
+\cf4 var\cf3  u = 1.0.rand, v = 1.0.rand, w = 1.0.rand, u0, v0, w0;\
+\cf2 //var a = 0.344, b = 0.4, c = 4.5;\cf3 \
+\cf4 var\cf3  a = 0.2, b = 0.2, c = 5.0;\
+\cf4 var\cf3  g = 10, dt = 0.05, run = \cf4 true\cf3 ;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 , \{\
+	while \{ run \} \{\
+		x0 = -1 * (y + z) * dt + x;\
+		y0 = (x + (a * y)) * dt + y;\
+		z0 = (b + (z * (x - c)) + (g * (w - z))) * dt + z;\
+		x = x0;\
+		y = y0;\
+		z = z0;\
+		u0 = -1 * (v + w) * dt + u;\
+		v0 = (u + (a * v)) * dt + v;\
+		w0 = (b + (w * (u - c)) + (g * (z - w))) * dt + w;\
+		u = u0;\
+		v = v0;\
+		w = w0;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		(x-u).post; \cf5 ", "\cf3 .post; (y-v).post; \cf5 ", "\cf3 .post; (z-w).postln;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 		if( z.abs > 1000, \{ run = \cf4 false\cf3 ; \});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		0.05.wait;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 	\}\
+\})\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+\cf2 // without plot (xyz-connected)\cf3 \
+(\
+\cf4 var\cf3  x = 1.0.rand, y = 1.0.rand, z = 1.0.rand, x0, y0, z0;\
+\cf4 var\cf3  u = 1.0.rand, v = 1.0.rand, w = 1.0.rand, u0, v0, w0;\
+\cf2 //var a = 0.344, b = 0.4, c = 4.5;\cf3 \
+\cf4 var\cf3  a = 0.2, b = 0.2, c = 5.0;\
+\cf4 var\cf3  g = 0.4, dt = 0.05, run = \cf4 true\cf3 ;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 , \{\
+	while \{ run \} \{\
+		x0 = ((-1 * (y + z)) + (g * (u - x))) * dt + x;\
+		y0 = (x + (a * y)+ (g * (v - y))) * dt + y;\
+		z0 = (b + (z * (x - c)) + (g * (w - z))) * dt + z;\
+		x = x0;\
+		y = y0;\
+		z = z0;\
+		u0 = ((-1 * (v + w)) + (g * (x - u))) * dt + u;\
+		v0 = (u + (a * v) + (g * (y - v))) * dt + v;\
+		w0 = (b + (w * (u - c)) + (g * (z - w))) * dt + w;\
+		u = u0;\
+		v = v0;\
+		w = w0;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		(x-u).post; \cf5 ", "\cf3 .post; (y-v).post; \cf5 ", "\cf3 .post; (z-w).postln;\
+\cf2 //		x.post; ", ".post; y.post; ", ".post; z.postln;\cf3 \
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 		if( z.abs > 1000, \{ run = \cf4 false\cf3 ; \});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		0.05.wait;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 	\}\
+\})\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+\cf2 // with plot (xyz-connected)\cf3 \
+(\
+\cf4 var\cf3  x = 0.1.rand, y = 0, z = 0, x0, y0, z0;\
+\cf4 var\cf3  u = 0.1.rand, v = 0, w = 0, u0, v0, w0;\
+\cf2 //var a = 0.344, b = 0.4, c = 4.5;\cf3 \
+\cf4 var\cf3  a = 0.2, b = 0.2, c = 5.0;\
+\cf4 var\cf3  g = 0, dt = 0.05, i = 0, imax = 200;\
+\cf4 var\cf3  diff = \cf4 Array\cf3 .fill(imax, 0);\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 , \{\
+	imax.do (\{\
+		x0 = ((-1 * (y + z)) + (g * (u - x))) * dt + x;\
+		y0 = (x + (a * y) + (g * (v - y))) * dt + y;\
+		z0 = (b + (z * (x - c)) + (g * (w - z))) * dt + z;\
+		x = x0;\
+		y = y0;\
+		z = z0;\
+		u0 = ((-1 * (v + w)) + (g * (x - u))) * dt + u;\
+		v0 = (u + (a * v) + (g * (y - v))) * dt + v;\
+		w0 = (b + (w * (u - c)) + (g * (z - w))) * dt + w;\
+		u = u0;\
+		v = v0;\
+		w = w0;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		(x-u).post; \cf5 ", "\cf3 .post; (y-v).post; \cf5 ", "\cf3 .post; (z-w).postln;\
+		diff.put(i, x-u);\
+		i = i + 1;\
+		0.1.wait;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 	\});\
+	\{ diff.plot(\cf5 "diff"\cf3 ) \}.defer;\
+\})\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+\
+\cf2 // connected feedback sine\cf3 \
+\
+~g1.ar(1);\
+~g2.ar(1);\
+~k = 0.1;\
+~k = \{ \cf4 LFNoise1\cf3 .ar(10, 1, 9) \};\
+\
+~g1 = ~k * (~out2 - ~out1);\
+~g2 = ~k * (~out1 - ~out2);\
+\
+~g1 = ~k * (~out3 - ~out1);\
+~g2 = ~k * (~out3 - ~out2);\
+\
+~g1 = 0;\
+~g2 = 0;\
+\
+~fb1.kr(1);\
+~fb2.kr(1);\
+\
+~fb1 = 1.1;\
+~fb2 = 1.0;\
+\
+~out1 = \{ \cf4 FBSineL\cf3 .ar(\cf4 SampleRate\cf3 .ir, 1, ~fb1.kr, 1, pi + ~g1.ar, 1.0.rand, 2pi.rand) \};\
+~out2 = \{ \cf4 FBSineL\cf3 .ar(\cf4 SampleRate\cf3 .ir, 1, ~fb2.kr, 1, pi + ~g2.ar, 1.0.rand, 2pi.rand) \};\
+~out3 = \{ \cf4 FBSineL\cf3 .ar(\cf4 SampleRate\cf3 .ir, 1, 0, 1, pi, 1.0.rand, 2pi.rand) \};\
+~out = [~out1, ~out2] * 0.1;\
+~out = [~out1 - ~out2, ~out1 - ~out2] * 0.05;\
+~out = [~out1 - ~out3, ~out2 - ~out3] * 0.05;\
+\
+~out.play;\
+~out.scope;\
+\
+\
+\cf2 // connected quad (logistic)\cf3 \
+\
+~out1 = \{ \cf4 QuadL\cf3 .ar(\cf4 SampleRate\cf3 .ir, 1, ~fb1.kr, 1, pi + ~g1.ar, 1.0.rand, 2pi.rand) \};\
+\
+\
+\
+\
+\cf2 // collatz conjecture\cf3 \
+\
+\cf2 // signal and buffer\cf3 \
+a = \cf4 Signal\cf3 .newClear(1024);\
+b = \cf4 Buffer\cf3 .alloc(s, 1024, 1, bufnum: 80);\
+\
+(\
+\cf4 var\cf3  yinit = 100.rand+1;\
+yinit.postln;\
+y = yinit;\
+a.waveFill(\{ if(y==1, \{y=yinit;\}, \{if(y%2==1, \{y=3*y+1\}, \{y=y/2\})\}); \}).normalize.plot;\
+)\
+\
+(\
+\cf4 var\cf3  yinit = 100.rand+1;\
+yinit.postln;\
+y = yinit;\
+a.waveFill(\{ if(y==1, \{y=100.rand+1;\}, \{if(y%2==1, \{y=3*y+1\}, \{y=y/2\})\}); \}).normalize.plot;\
+)\
+\
+\
+\cf2 // signal to buffer\cf3 \
+b.loadCollection(a, 0);\
+b.plot;\
+\
+\
+\
+\
+\
+\cf2 // time proxy\cf3 \
+~t.ar(1);\
+\
+\cf2 // formula proxy\cf3 \
+~formula.ar(2);\
+~formula.play;\
+~formula.scope;\
+~formula.release;\
+~formula.stop;\
+\
+\
+\cf2 // trigonometric functions\cf3 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f2\fs24 \cf0 {{\NeXTGraphic Pasted Graphic 1.pdf \width8040 \height1140
+}¬}\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs36 \cf3 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \{ sin(tan(\cf4 Line\cf3 .ar(0, 2pi, 1))) - tan(sin(\cf4 Line\cf3 .ar(0, 2pi, 1))) \}.plot(1);\
+~formula = \{ (sin(tan(~t.ar)) - tan(sin(~t.ar))).dup * 0.1 \};\
+~formula = \{ \cf4 Normalizer\cf3 .ar(sin(tan(~t.ar)) - tan(sin(~t.ar)), 0.3, 0.01).dup \};\
+\
+~trig.ar(1);\
+~trig = 1;\
+\
+~t = \{ \cf4 Line\cf3 .ar(0, 200pi, 200, doneAction:2) \};\
+~t = \{ \cf4 Phasor\cf3 .ar(~trig, 1.0/\cf4 SampleRate\cf3 .ir, 0, 2pi, 0) \};\
+\
+\
+~formula = \{ (sin(tan(~t.ar)) * tan(sin(~t.ar))).dup * 0.1 \};\
+~formula = \{ (sin(cos(tan(~t.ar))) - tan(cos(sin(~t.ar)))).dup * 0.1 \};\
+~formula = \{ (tan(cos(~t.ar))).dup * 0.1 \};\
+~formula = \{ (tan(sin(~t.ar))).dup * 0.1 \};\
+~formula = \{ (sin(tan(~t.ar))).dup * 0.1 \};\
+~formula = \{ (sin(tan(tan(tan(tan(~t.ar)))))).dup * 0.1 \};\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f2\fs24 \cf0 {{\NeXTGraphic Pasted Graphic.pdf \width2720 \height1320
+}¬}\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs36 \cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\{ \cf4 Line\cf3 .ar(-pi, pi, 1) * sin(1/\cf4 Line\cf3 .ar(-pi, pi, 1)) \}.plot(1);\
+~formula = \{ ~t.ar * (sin(1/~t.ar)).dup \};\
+\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f2\fs24 \cf0 {{\NeXTGraphic 1__#$!@%!#__Pasted Graphic.tiff \width9680 \height1020
+}¬}\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs36 \cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\{ (sin(\cf4 Line\cf3 .ar(0, 1, 1)*80) * 0.3 + sin(\cf4 Line\cf3 .ar(0, 1, 1)*23)).max(0) \}.plot(1);\
+~formula = \{ (sin(~t.ar*80) * 0.3 + sin(~t.ar*23)).max(0).dup * 0.5 \};\
+~t = \{ \cf4 Phasor\cf3 .ar(0, 100.0/\cf4 SampleRate\cf3 .ir, 0, 1, 0) \};\
+\
+\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 \
+\
+\
+\
+\
+\
+\
+\
+\cf2 // taskproxy\cf3 \
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 ).play;\
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 ).stop;\
+\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf2 //\cf3 \
+\cf2 // discrete dynamical systems\cf3 \
+\cf2 // "period 3 implies chaos" (1+6.sqrt < a < 4)\cf3 \
+\cf2 //\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f2\fs24 \cf0 {{\NeXTGraphic 2__#$!@%!#__Pasted Graphic.tiff \width6440 \height1200
+}¬}\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs36 \cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+(\
+\cf4 var\cf3  x = 1.0.rand, a = rrand(1+6.sqrt, 4);\
+a.postln;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 , \{\
+	loop (\{\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		x = a * (1 - x) * x;\
+		x.postln;\
+		0.1.wait;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 	\});\
+\})\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+\
+\cf2 // henon attractor\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f2\fs24 \cf0 {{\NeXTGraphic Pasted Graphic 6.tiff \width7880 \height2420
+}¬}\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0\fs36 \cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+(a, b) = (1.4, 0.3)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 (\
+\cf4 var\cf3  x = 1.0.rand2, y = 1.0.rand2, x0, y0;\
+\cf4 var\cf3  a = 1.4, b = 0.3;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 , \{\
+	loop (\{\
+		x0 = y + 1 - (a * x.squared); \
+		y0 = b * x;\
+		x = x0;\
+		y = y0;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		x.post; \cf5 ", "\cf3 .post; y.postln;\
+		0.1.wait;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 	\});\
+\})\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+\
+\
+\cf2 // strange attractor\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f2\fs24 \cf0 {{\NeXTGraphic 3__#$!@%!#__Pasted Graphic.tiff \width10860 \height2640
+}¬}\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs36 \cf3 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 (\
+\cf4 var\cf3  x = 1.0.rand, y = 1.0.rand, x0, y0;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 , \{\
+	loop (\{\
+		x0 = y - (0.97 * x) + (5 / (1 + x.squared)) - 5;\
+		y0 = -0.995 * x;\
+		x = x0;\
+		y = y0;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		x.post; \cf5 ", "\cf3 .post; y.postln;\
+		0.1.wait;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 	\});\
+\})\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+\
+\
+\cf2 // unstable numerical solution\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f2\fs24 \cf0 {{\NeXTGraphic Pasted Graphic 5.tiff \width8420 \height3560
+}¬}\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs36 \cf3 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 (\
+\cf4 var\cf3  x, x1, x0 = 0.01, dt = 0.1;\
+x = x0 + (dt * x0 * (1 - x0));\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 , \{\
+	loop (\{\
+		x1 = x0 + (2 * dt * x * (1 - x));\
+		x0 = x;\
+		x = x1;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		x.postln;\
+		0.1.wait;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 	\});\
+\})\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+\
+\cf2 // Rossler attractor\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f2\fs24 \cf0 {{\NeXTGraphic 1__#$!@%!#__Pasted Graphic 3.tiff \width6160 \height3260
+}¬}\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs36 \cf3 \
+\pard\pardeftab720\sa280\ql\qnatural
+\cf3 (a, b, c) = (0.344, 0.4, 4.5) \
+(a, b, c) = (0.2, 0.2, 5.0)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 (\
+\cf4 var\cf3  x = 1.0.rand, y = 0, z = 0, x0, y0, z0, dt = 0.01;\
+\cf2 //var a = 0.344, b = 0.4, c = 4.5;\cf3 \
+\cf4 var\cf3  a = 0.2, b = 0.2, c = 5.0;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 , \{\
+	loop (\{\
+		x0 = -1 * (y + z) * dt + x;\
+		y0 = (x + (a * y)) * dt + y;\
+		z0 = (b + (z * (x - c))) * dt + z;\
+		x = x0;\
+		y = y0;\
+		z = z0;\
+		if( z.abs > 1000, \{x = 1.0.rand; y = 0; z = 0\});\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		x.post; \cf5 ", "\cf3 .post; y.post; \cf5 ", "\cf3 .post; z.postln;\
+		0.1.wait;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 	\});\
+\})\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\
+\
+\cf2 // Lorentz attractor\cf3 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f2\fs24 \cf0 {{\NeXTGraphic 1__#$!@%!#__Pasted Graphic 4.tiff \width6840 \height3040
+}¬}\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs36 \cf3 \
+(\cf4 Pr\cf3 , r, b) = (10, 28, 8/3
+\f1 \'81\'6a\
+\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+
+\f0 \cf3 (\
+\cf4 var\cf3  x = 0.1.rand, y = 0, z = 0, x0, y0, z0, dt = -0.001;\
+\cf4 var\cf3  pr = 10, r = 28, b = 8/3;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf4 Tdef\cf3 (\cf6 \\x\cf3 , \{\
+	loop (\{\
+		x0 = pr * (y - x) * dt + x;\
+		y0 = (x * (r - z) - y) * dt + y;\
+		z0 = ((x * y) - (b * z)) * dt + z;\
+		x = x0;\
+		y = y0;\
+		z = z0;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 		x.post; \cf5 ", "\cf3 .post; y.post; \cf5 ", "\cf3 .post; z.postln;\
+		0.1.wait;\
+\pard\tx565\tx1133\tx1700\tx2266\tx2832\tx3401\tx3967\tx4535\tx5102\tx5669\tx6235\tx6802\ql\qnatural
+\cf3 	\});\
+\})\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 )\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf3 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural
+\cf3 \
+\
+\
+\
+\
+\
+\
+}
